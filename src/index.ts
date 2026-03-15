@@ -13,6 +13,7 @@ import * as traefik from "./proxy/traefik";
 import { render } from "./ssr/render";
 import { shell } from "./ssr/html";
 import type { ProxyConfig } from "./proxy/types";
+import { getLogs } from "./api/logs";
 
 const PORT = process.env.PORT ?? "3000";
 const ASSETS_DIR = join(process.cwd(), "dist", "assets");
@@ -80,6 +81,7 @@ const app = new Elysia()
     return applyConfig(config);
   })
   .get("/api/certificates", () => [])
+  .get("/api/logs", () => ({ lines: getLogs() }))
   .get("/api/config/preview", async () => {
     const { provider } = await detectProxy();
     const config = await getLatest();

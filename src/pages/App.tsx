@@ -4,6 +4,7 @@ import { Dashboard } from "./Dashboard";
 import { Sites } from "./Sites";
 import { Certificates } from "./Certificates";
 import { Config } from "./Config";
+import { Logs } from "./Logs";
 
 interface AppProps {
   path?: string;
@@ -20,7 +21,7 @@ function Page({ path }: { path: string }) {
   if (path === "/sites") return <Sites />;
   if (path === "/config") return <Config />;
   if (path === "/certificates") return <Certificates />;
-  if (path === "/logs") return <h2>Logs</h2>;
+  if (path === "/logs") return <Logs />;
   return <h1>Proxydeck</h1>;
 }
 
