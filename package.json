@@ -4,24 +4,24 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
-    "build": "bun run build:client",
-    "build:client": "bun build src/client/entry.tsx --outdir=dist/assets --minify --sourcemap=external --target=browser",
+    "dev": "bun run build:ui && concurrently \"bun run build:ui:watch\" \"bun run dev:server\"",
+    "dev:server": "bun run --hot src/index.ts",
+    "build": "cd frontend && npm run build",
+    "build:ui": "cd frontend && npm run build",
+    "build:ui:watch": "cd frontend && npm run build:watch",
+    "dev:ui": "cd frontend && npm run dev",
     "db:migrate": "bun db/run-migrate.ts",
     "start": "bun src/index.ts"
   },
   "dependencies": {
     "better-auth": "^1.5.5",
     "elysia": "^1.1.0",
-    "pg": "^8.20.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/pg": "^8.18.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "concurrently": "^9.2.1",
     "typescript": "^5.0.0"
   }
 }
