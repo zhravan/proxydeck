@@ -12,10 +12,16 @@ const navItems = [
   { href: "/logs", label: "Logs" },
 ];
 
+async function handleLogout(e: React.FormEvent) {
+  e.preventDefault();
+  await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
+  window.location.href = "/login";
+}
+
 export function Layout({ children }: LayoutProps) {
   return (
     <>
-      <nav aria-label="Main">
+      <nav aria-label="Main" className="hstack" style={{ justifyContent: "space-between", alignItems: "center" }}>
         <ul className="unstyled hstack" style={{ gap: "1rem", listStyle: "none" }}>
           {navItems.map(({ href, label }) => (
             <li key={href}>
@@ -25,6 +31,11 @@ export function Layout({ children }: LayoutProps) {
             </li>
           ))}
         </ul>
+        <form onSubmit={handleLogout} style={{ margin: 0 }}>
+          <button type="submit" className="outline small">
+            Log out
+          </button>
+        </form>
       </nav>
       <main>{children}</main>
     </>
