@@ -7,13 +7,17 @@
     "dev": "bun run --hot src/index.ts",
     "build": "bun run build:client",
     "build:client": "bun build src/client/entry.tsx --outdir=dist/assets --minify --sourcemap=external --target=browser",
+    "db:migrate": "bun run db/run-migrate.ts",
     "start": "bun src/index.ts"
   },
   "dependencies": {
-    "elysia": "^1.1.0"
+    "better-auth": "^1.5.5",
+    "elysia": "^1.1.0",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/pg": "^8.18.0",
     "typescript": "^5.0.0"
   }
 }
