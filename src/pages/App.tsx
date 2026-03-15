@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { Layout } from "../components/Layout";
 import { Dashboard } from "./Dashboard";
+import { Sites } from "./Sites";
 
 interface AppProps {
   path?: string;
@@ -14,7 +15,7 @@ function getPath(): string {
 
 function Page({ path }: { path: string }) {
   if (path === "/") return <Dashboard />;
-  if (path === "/sites") return <h2>Sites</h2>;
+  if (path === "/sites") return <Sites />;
   if (path === "/config") return <h2>Config</h2>;
   if (path === "/certificates") return <h2>Certificates</h2>;
   if (path === "/logs") return <h2>Logs</h2>;

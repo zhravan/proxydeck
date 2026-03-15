@@ -40,6 +40,14 @@ export async function listHistory(): Promise<ConfigHistoryEntry[]> {
   }));
 }
 
+export async function getLatest(): Promise<ProxyConfig | null> {
+  const r = await pool.query<{ payload: unknown }>(
+    'SELECT payload FROM config_history ORDER BY "createdAt" DESC LIMIT 1'
+  );
+  const row = r.rows[0];
+  return row ? (row.payload as ProxyConfig) : null;
+}
+
 export async function getById(id: string): Promise<ConfigHistoryEntry | null> {
   const r = await pool.query<{
     id: string;

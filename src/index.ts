@@ -7,7 +7,7 @@ import { allowSignup } from "./auth/allow-signup";
 import { detectProxy } from "./proxy/detect";
 import { validateConfig } from "./config/validate";
 import { applyConfig } from "./config/apply";
-import { listHistory, getById } from "./config/history";
+import { listHistory, getById, getLatest } from "./config/history";
 import { render } from "./ssr/render";
 import { shell } from "./ssr/html";
 import type { ProxyConfig } from "./proxy/types";
@@ -76,6 +76,10 @@ const app = new Elysia()
     const config = (typeof body === "string" ? JSON.parse(body) : body) as ProxyConfig;
     if (!config?.sites) return { ok: false, error: "Invalid config: sites required" };
     return applyConfig(config);
+  })
+  .get("/api/config/current", async () => {
+    const config = await getLatest();
+    return config ?? { sites: [] };
   })
   .get("/api/config/history", () => listHistory())
   .post("/api/config/rollback", async ({ body }) => {
