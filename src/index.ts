@@ -5,8 +5,11 @@ import { auth } from "./auth/config";
 import { getSession, isProtectedPath } from "./auth/middleware";
 import { allowSignup } from "./auth/allow-signup";
 import { detectProxy } from "./proxy/detect";
+import { validateConfig } from "./config/validate";
+import { applyConfig } from "./config/apply";
 import { render } from "./ssr/render";
 import { shell } from "./ssr/html";
+import type { ProxyConfig } from "./proxy/types";
 
 const PORT = process.env.PORT ?? "3000";
 const ASSETS_DIR = join(process.cwd(), "dist", "assets");
@@ -55,6 +58,14 @@ const app = new Elysia()
   .onBeforeHandle(authGuard)
   .get("/api/allow-signup", async () => ({ allowSignup: await allowSignup() }))
   .get("/api/proxy/status", async () => detectProxy())
+  .post("/api/config/validate", async ({ body }) => {
+    const config = body as ProxyConfig;
+    return validateConfig(config);
+  })
+  .post("/api/config/apply", async ({ body }) => {
+    const config = body as ProxyConfig;
+    return applyConfig(config);
+  })
   .all("/api/auth/*", async ({ request }) => auth.handler(request))
   .get("/login", () => new Response(loginHtml, { headers: { "Content-Type": "text/html" } }))
   .get("/signup", () => new Response(signupHtml, { headers: { "Content-Type": "text/html" } }))
