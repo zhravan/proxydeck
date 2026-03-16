@@ -16,9 +16,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Get version from package.json
         id: version
-        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(bun -e "console.log(require('./package.json').version)")" >> $GITHUB_OUTPUT
 
       - name: Create release
         env:
