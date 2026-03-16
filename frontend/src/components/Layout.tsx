@@ -22,7 +22,7 @@ export function Layout() {
     <>
       <nav data-topnav aria-label="Main" className="hstack justify-between w-100">
         <NavLink to="/" className="hstack gap-2" style={{ textDecoration: "none", color: "inherit" }}>
-          <img src="/logo.svg" alt="" style={{ height: "2rem", width: "auto", display: "block" }} />
+          <img src="/logo.svg" alt="" style={{ height: "3.75rem", width: "auto", display: "block" }} />
         </NavLink>
         <div className="hstack gap-2">
           <span className="hstack gap-1">
