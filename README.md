@@ -8,7 +8,7 @@
 ---
 
 - _**Tech Stack**_: Bun + React, one origin. 
-- Needs: Bun, PostgreSQL.
+- _**Needs**_: Bun, PostgreSQL.
 
 ---
 
