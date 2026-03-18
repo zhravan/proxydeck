@@ -16,15 +16,16 @@ function getCookie(headers: Headers, name: string): string | null {
 }
 
 /** Resolve session from DB using cookie token. */
-async function getSessionFromDb(cookieValue: string): Promise<{ user: unknown } | null> {
+async function getSessionFromDb(cookieValue: string): Promise<{ user: { id: string, name: string, email: string, username: string | null, role: string } } | null> {
   const tokenPart = cookieValue.split(".")[0];
   const r = await pool.query<{
     id: string;
     name: string;
     email: string;
     username: string | null;
+    role: string;
   }>(
-    `SELECT u.id, u.name, u.email, u.username FROM session s
+    `SELECT u.id, u.name, u.email, u.username, u.role FROM session s
      JOIN "user" u ON s."userId" = u.id
      WHERE (s.token = $1 OR s.token = $2) AND s."expiresAt" > NOW()`,
     [cookieValue, tokenPart]
@@ -37,6 +38,7 @@ async function getSessionFromDb(cookieValue: string): Promise<{ user: unknown } 
       name: row.name,
       email: row.email,
       username: row.username,
+      role: row.role,
     },
   };
 }

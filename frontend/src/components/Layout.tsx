@@ -6,6 +6,7 @@ const navItems = [
   { to: "/config", end: false, label: "Config" },
   { to: "/certificates", end: false, label: "Certificates" },
   { to: "/logs", end: false, label: "Logs" },
+  { to: "/team", end: false, label: "Team" },
 ];
 
 async function handleLogout(e: React.FormEvent) {

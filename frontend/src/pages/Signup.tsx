@@ -20,12 +20,33 @@ export function Signup() {
   const [loading, setLoading] = useState(false);
   const [allowSignup, setAllowSignup] = useState<boolean | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<{ email: string; role: string } | null>(null);
 
   useEffect(() => {
     if (readStoredSession()) {
       navigate("/", { replace: true });
       return;
     }
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      setInviteToken(token);
+      fetch(`/api/invites/check/${token}`)
+        .then((r) => {
+          if (!r.ok) throw new Error("Invalid or expired invite");
+          return r.json();
+        })
+        .then((d) => {
+          setInviteInfo(d);
+          setAllowSignup(true);
+        })
+        .catch((e) => {
+          setError(e.message);
+          setAllowSignup(false);
+        });
+    }
+
     fetch("/api/auth/get-session", { credentials: "include" })
       .then((r) => r.text())
       .then((text) => {
@@ -38,12 +59,12 @@ export function Signup() {
   }, [navigate]);
 
   useEffect(() => {
-    if (checkingSession) return;
+    if (checkingSession || inviteToken) return;
     fetch("/api/allow-signup", { credentials: "include" })
       .then((r) => r.json())
       .then((d) => setAllowSignup(d?.allowSignup === true))
       .catch(() => setAllowSignup(false));
-  }, [checkingSession]);
+  }, [checkingSession, inviteToken]);
 
   useEffect(() => {
     if (allowSignup === false) navigate("/login", { replace: true });
@@ -98,7 +119,13 @@ export function Signup() {
         <article className="card p-4">
           <header className="mb-4">
             <h1>Create account</h1>
-            <p className="text-light">One-time setup. Only one user is allowed.</p>
+            {inviteInfo ? (
+              <p className="text-light">
+                You've been invited as <strong>{inviteInfo.email}</strong> with role <strong>{inviteInfo.role}</strong>.
+              </p>
+            ) : (
+              <p className="text-light">One-time setup. Only one user is allowed.</p>
+            )}
           </header>
           <form onSubmit={handleSubmit} className="vstack gap-4">
             <div data-field>

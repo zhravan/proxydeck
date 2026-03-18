@@ -8,6 +8,7 @@ import { Certificates } from "./pages/Certificates";
 import { Logs } from "./pages/Logs";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
+import { Team } from "./pages/Team";
 
 const SESSION_KEY = "pd_session";
 
@@ -75,6 +76,7 @@ export function App() {
           <Route path="config" element={<Config />} />
           <Route path="certificates" element={<Certificates />} />
           <Route path="logs" element={<Logs />} />
+          <Route path="team" element={<Team />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

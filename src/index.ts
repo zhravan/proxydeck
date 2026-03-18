@@ -12,11 +12,12 @@ import * as caddy from "./proxy/caddy";
 import * as traefik from "./proxy/traefik";
 import type { ProxyConfig } from "./proxy/types";
 import { getLogs } from "./api/logs";
+import { listInvites, createInvite, deleteInvite, getInviteByToken } from "./api/invites";
 
 const PORT = process.env.PORT ?? "3000";
 const FRONTEND_DIR = join(process.cwd(), "frontend", "dist");
 
-const PUBLIC_API_PATHS = ["/api/auth", "/api/allow-signup", "/api/proxy/status"];
+const PUBLIC_API_PATHS = ["/api/auth", "/api/allow-signup", "/api/proxy/status", "/api/invites/check"];
 
 async function apiAuthGuard({ request }: { request: Request }) {
   const pathname = new URL(request.url).pathname;
@@ -92,6 +93,25 @@ const app = new Elysia()
     const entry = await getById(id);
     if (!entry) return { ok: false, error: "Config not found" };
     return applyConfig(entry.payload);
+  })
+  .get("/api/invites", async () => listInvites())
+  .post("/api/invites", async ({ request, body }) => {
+    const session = await getSession(request);
+    if (session?.user?.role !== "admin") return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { "Content-Type": "application/json" } });
+    const { email, role } = (typeof body === "string" ? JSON.parse(body) : body) as { email: string, role: string };
+    if (!email) return new Response(JSON.stringify({ error: "Email required" }), { status: 400 });
+    return createInvite(email, role || "member", session.user.id);
+  })
+  .delete("/api/invites/:id", async ({ request, params }) => {
+    const session = await getSession(request);
+    if (session?.user?.role !== "admin") return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { "Content-Type": "application/json" } });
+    await deleteInvite(params.id);
+    return { ok: true };
+  })
+  .get("/api/invites/check/:token", async ({ params }) => {
+    const invite = await getInviteByToken(params.token);
+    if (!invite) return new Response(JSON.stringify({ error: "Invalid or expired invite" }), { status: 404, headers: { "Content-Type": "application/json" } });
+    return invite;
   })
   .all("/api/auth/*", async ({ request }) => auth.handler(request))
   .get("/*", ({ request }) => {

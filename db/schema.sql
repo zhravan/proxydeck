@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   "image" TEXT,
   "username" TEXT UNIQUE,
   "displayUsername" TEXT,
+  "role" TEXT NOT NULL DEFAULT 'member',
   "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
   "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -53,4 +54,16 @@ CREATE TABLE IF NOT EXISTS config_history (
   "payload" JSONB NOT NULL,
   "provider" TEXT NOT NULL,
   "comment" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS "invitation" (
+  "id" TEXT PRIMARY KEY,
+  "email" TEXT NOT NULL,
+  "role" TEXT NOT NULL DEFAULT 'member',
+  "token" TEXT NOT NULL UNIQUE,
+  "expiresAt" TIMESTAMP NOT NULL,
+  "inviterId" TEXT NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
 );
