@@ -9,6 +9,7 @@ export type HttpJsonBody = unknown;
 /** Paths where 401 must not trigger a client wipe (session probes, public API). */
 function ignoreUnauthorizedForPath(path: string): boolean {
   if (path.startsWith("/api/auth")) return true;
+  if (path === "/api/health" || path.startsWith("/api/health/")) return true;
   if (path === "/api/allow-signup" || path.startsWith("/api/allow-signup/")) return true;
   if (path === "/api/proxy/status" || path.startsWith("/api/proxy/status/")) return true;
   return false;
