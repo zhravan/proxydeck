@@ -1,4 +1,4 @@
-import { pool } from "../../db/pool";
+import { pool } from "../db/pool";
 
 const PUBLIC_PATHS = ["/login", "/signup", "/api/auth", "/api/allow-signup"];
 const STATIC_PREFIX = "/assets";

@@ -1,6 +1,6 @@
 {
   "name": "proxydeck",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": false,
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "build:ui": "cd frontend && npm run build",
     "build:ui:watch": "cd frontend && npm run build:watch",
     "dev:ui": "cd frontend && npm run dev",
-    "db:migrate": "bun db/run-migrate.ts",
+    "db:migrate": "bun src/db/run-migrate.ts",
     "start": "bun src/index.ts"
   },
   "dependencies": {

@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { auth } from "./auth/config";
+import { auth } from "./auth";
 import { getSession } from "./auth/middleware";
 import { allowSignup } from "./auth/allow-signup";
 import { detectProxy } from "./proxy/detect";

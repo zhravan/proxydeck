@@ -1,4 +1,4 @@
-import { pool } from "../../db/pool";
+import { pool } from "../db/pool";
 
 export async function allowSignup(): Promise<boolean> {
   const r = await pool.query<{ count: string }>(

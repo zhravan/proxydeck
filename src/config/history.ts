@@ -1,4 +1,4 @@
-import { pool } from "../../db/pool";
+import { pool } from "../db/pool";
 import type { ProxyConfig } from "../proxy/types";
 import { randomUUID } from "crypto";
 

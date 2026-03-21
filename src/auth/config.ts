@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { username } from "better-auth/plugins";
-import { pool } from "../../db/pool";
+import { pool } from "../db/pool";
 
 const baseURL = process.env.BETTER_AUTH_URL ?? `http://localhost:${process.env.PORT ?? "3000"}`;
 const secret = process.env.BETTER_AUTH_SECRET ?? "dev-secret-change-in-production";
