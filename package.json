@@ -1,18 +1,22 @@
 {
   "name": "proxydeck",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "private": false,
   "type": "module",
   "scripts": {
     "dev": "bun run build:ui && concurrently \"bun run build:ui:watch\" \"bun run dev:server\"",
     "dev:server": "bun run --hot src/index.ts",
-    "build": "cd frontend && bun run build",
+    "build": "bun run build:ui && bun run build:api",
     "build:ui": "cd frontend && bun run build",
+    "build:api": "tsc --noEmit",
     "build:ui:watch": "cd frontend && bun run build:watch",
     "dev:ui": "cd frontend && bun run dev",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "start": "bun src/index.ts"
+    "start": "bun src/index.ts",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version"
   },
   "dependencies": {
     "@elysiajs/swagger": "^1.3.1",
