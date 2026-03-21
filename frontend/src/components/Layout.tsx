@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { SESSION_KEY } from "../lib/sessionStorage";
+import { clearBrowserPersistedState } from "../lib/clearClientState";
 import { signOut } from "../services/auth";
 import { useLayoutSidebar } from "./hooks/useLayoutSidebar";
 import "./LayoutOat.css";
@@ -14,11 +14,13 @@ const proxyNav = [
 
 async function handleLogout(e: React.FormEvent) {
   e.preventDefault();
-  await signOut();
   try {
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch (_) {}
-  window.location.href = "/login";
+    await signOut();
+  } catch {
+    /* still clear client; session may already be invalid */
+  }
+  clearBrowserPersistedState();
+  window.location.replace("/login");
 }
 
 export function Layout() {

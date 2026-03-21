@@ -18,10 +18,18 @@ export function useSession() {
             sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user: fromApi }));
           } catch (_) {}
         } else {
-          setSession(readStoredSession());
+          try {
+            sessionStorage.removeItem(SESSION_KEY);
+          } catch (_) {}
+          setSession(null);
         }
       })
-      .catch(() => setSession(readStoredSession()))
+      .catch(() => {
+        try {
+          sessionStorage.removeItem(SESSION_KEY);
+        } catch (_) {}
+        setSession(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 

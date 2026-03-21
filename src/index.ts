@@ -12,6 +12,8 @@ import * as caddy from "./proxy/caddy";
 import * as traefik from "./proxy/traefik";
 import type { ProxyConfig } from "./proxy/types";
 import { getLogs } from "./api/logs";
+import { domainRoutes } from "./api/domains";
+import { runMigrationsOrExit } from "./db/runMigrations";
 
 const PORT = process.env.PORT ?? "3000";
 const FRONTEND_DIR = join(process.cwd(), "frontend", "dist");
@@ -50,8 +52,11 @@ function serveStatic(pathname: string): Response | null {
   return new Response(body, { headers: { "Content-Type": contentType } });
 }
 
+await runMigrationsOrExit();
+
 const app = new Elysia()
   .onBeforeHandle(apiAuthGuard)
+  .use(domainRoutes)
   .get("/api/allow-signup", async () => ({ allowSignup: await allowSignup() }))
   .get("/api/proxy/status", async () => {
     try {
