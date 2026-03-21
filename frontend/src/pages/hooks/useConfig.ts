@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  getConfigHistory,
+  getConfigPreview,
+  postConfigRollback,
+} from "../../services/config";
 
 export interface ConfigPreview {
   provider: string | null;
@@ -20,10 +25,7 @@ export function useConfig() {
 
   const load = useCallback(() => {
     setLoading(true);
-    Promise.all([
-      fetch("/api/config/preview", { credentials: "include" }).then((r) => r.json()),
-      fetch("/api/config/history", { credentials: "include" }).then((r) => r.json()),
-    ])
+    Promise.all([getConfigPreview().then((r) => r.json()), getConfigHistory().then((r) => r.json())])
       .then(([p, h]) => {
         setPreview(p);
         setHistory(Array.isArray(h) ? h : []);
@@ -39,12 +41,7 @@ export function useConfig() {
   const rollback = useCallback(
     (id: string) => {
       setRollbackResult(null);
-      fetch("/api/config/rollback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ id }),
-      })
+      postConfigRollback(id)
         .then((r) => r.json())
         .then((r) => {
           setRollbackResult(r);

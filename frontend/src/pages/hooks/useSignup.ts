@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { readStoredSession, SESSION_KEY } from "../../lib/sessionStorage";
+import { getAllowSignup, getSession, signUpEmail } from "../../services/auth";
 
 export function useSignup() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export function useSignup() {
       navigate("/", { replace: true });
       return;
     }
-    fetch("/api/auth/get-session", { credentials: "include" })
+    getSession()
       .then((r) => r.text())
       .then((text) => {
         const d = text ? (() => { try { return JSON.parse(text); } catch { return null; } })() : null;
@@ -27,7 +28,7 @@ export function useSignup() {
 
   useEffect(() => {
     if (checkingSession) return;
-    fetch("/api/allow-signup", { credentials: "include" })
+    getAllowSignup()
       .then((r) => r.json())
       .then((d) => setAllowSignup(d?.allowSignup === true))
       .catch(() => setAllowSignup(false));
@@ -42,17 +43,12 @@ export function useSignup() {
     setError("");
     setLoading(true);
     const form = e.currentTarget;
-    const res = await fetch("/api/auth/sign-up/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: (form.elements.namedItem("name") as HTMLInputElement).value,
-        email: (form.elements.namedItem("email") as HTMLInputElement).value,
-        username: (form.elements.namedItem("username") as HTMLInputElement).value,
-        password: (form.elements.namedItem("password") as HTMLInputElement).value,
-        callbackURL: "/",
-      }),
-      credentials: "include",
+    const res = await signUpEmail({
+      name: (form.elements.namedItem("name") as HTMLInputElement).value,
+      email: (form.elements.namedItem("email") as HTMLInputElement).value,
+      username: (form.elements.namedItem("username") as HTMLInputElement).value,
+      password: (form.elements.namedItem("password") as HTMLInputElement).value,
+      callbackURL: "/",
     });
     setLoading(false);
     if (res.ok) {

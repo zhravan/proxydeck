@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { SESSION_KEY } from "../lib/sessionStorage";
+import { signOut } from "../services/auth";
 import { useLayoutSidebar } from "./hooks/useLayoutSidebar";
 import "./LayoutOat.css";
 
@@ -13,7 +14,7 @@ const proxyNav = [
 
 async function handleLogout(e: React.FormEvent) {
   e.preventDefault();
-  await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
+  await signOut();
   try {
     sessionStorage.removeItem(SESSION_KEY);
   } catch (_) {}

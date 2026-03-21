@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getCertificates } from "../../services/certificates";
 
 export interface CertInfo {
   domain: string;
@@ -11,7 +12,7 @@ export function useCertificates() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/certificates", { credentials: "include" })
+    getCertificates()
       .then((r) => r.json())
       .then((data) => setCerts(Array.isArray(data) ? data : []))
       .catch(() => setCerts([]))

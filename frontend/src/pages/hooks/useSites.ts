@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ProxyConfig, Site } from "../../types/proxy";
+import { getConfigCurrent, postConfigApply, postConfigValidate } from "../../services/config";
 
 const emptyConfig: ProxyConfig = { sites: [] };
 
@@ -13,7 +14,7 @@ export function useSites() {
   const [applyResult, setApplyResult] = useState<{ ok: boolean; error?: string } | null>(null);
 
   useEffect(() => {
-    fetch("/api/config/current", { credentials: "include" })
+    getConfigCurrent()
       .then((r) => r.json())
       .then((data) => setConfig(data?.sites ? data : emptyConfig))
       .catch(() => setConfig(emptyConfig))
@@ -40,12 +41,7 @@ export function useSites() {
 
   const validate = () => {
     setValidateResult(null);
-    fetch("/api/config/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(config),
-    })
+    postConfigValidate(config)
       .then((r) => r.json())
       .then(setValidateResult)
       .catch((e) => setValidateResult({ valid: false, error: e.message }));
@@ -54,12 +50,7 @@ export function useSites() {
   const apply = () => {
     setApplyResult(null);
     setValidateResult(null);
-    fetch("/api/config/apply", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(config),
-    })
+    postConfigApply(config)
       .then((r) => r.json())
       .then(setApplyResult)
       .catch((e) => setApplyResult({ ok: false, error: e.message }));

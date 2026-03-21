@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getProxyStatus } from "../../services/proxy";
 
 export interface ProxyStatus {
   provider: "caddy" | "traefik" | null;
@@ -9,7 +10,7 @@ export function useDashboard() {
   const [status, setStatus] = useState<ProxyStatus | null>(null);
 
   useEffect(() => {
-    fetch("/api/proxy/status", { credentials: "include" })
+    getProxyStatus()
       .then(async (r) => {
         const text = await r.text();
         const data = (() => { try { return JSON.parse(text); } catch { return null; } })();

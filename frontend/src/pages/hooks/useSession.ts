@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { readStoredSession, SESSION_KEY } from "../../lib/sessionStorage";
+import { getSession } from "../../services/auth";
 
 export function useSession() {
   const [session, setSession] = useState<unknown>(() => readStoredSession());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/auth/get-session", { credentials: "include" })
+    getSession()
       .then((r) => r.text())
       .then((text) => {
         const d = text ? (() => { try { return JSON.parse(text); } catch { return null; } })() : null;
