@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "bun run build:ui && concurrently \"bun run build:ui:watch\" \"bun run dev:server\"",
     "dev:server": "bun run --hot src/index.ts",
-    "build": "cd frontend && npm run build",
-    "build:ui": "cd frontend && npm run build",
-    "build:ui:watch": "cd frontend && npm run build:watch",
-    "dev:ui": "cd frontend && npm run dev",
+    "build": "cd frontend && bun run build",
+    "build:ui": "cd frontend && bun run build",
+    "build:ui:watch": "cd frontend && bun run build:watch",
+    "dev:ui": "cd frontend && bun run dev",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "start": "bun src/index.ts"

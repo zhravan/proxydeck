@@ -16,13 +16,13 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-          cache: "all"
 
       - name: Install backend deps
         run: bun install --frozen-lockfile
 
       - name: Install frontend deps
-        run: cd frontend && bun install --frozen-lockfile
+        working-directory: frontend
+        run: bun install --frozen-lockfile
 
       - name: Build
         run: bun run build

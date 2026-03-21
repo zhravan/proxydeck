@@ -2,11 +2,15 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -16,21 +20,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
       - name: Get version from package.json
         id: version
-        run: echo "VERSION=$(bun -e "console.log(require('./package.json').version)")" >> $GITHUB_OUTPUT
+        run: |
+          VERSION="$(jq -r .version package.json)"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create release
         env:
-          TAG: v${{ steps.version.outputs.VERSION }}
-        run: |
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --generate-notes
-        env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          set -euo pipefail
+          BASE_TAG="v${VERSION}"
+
+          if gh release view "$BASE_TAG" >/dev/null 2>&1; then
+            TAG="${BASE_TAG}.${GITHUB_RUN_NUMBER}"
+            echo "Release $BASE_TAG already exists; creating supplemental $TAG (not latest)."
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              --latest=false
+          else
+            echo "Creating release $BASE_TAG."
+            gh release create "$BASE_TAG" \
+              --title "$BASE_TAG" \
+              --generate-notes
+          fi
