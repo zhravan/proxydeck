@@ -1,9 +1,9 @@
-import { pool } from "../db/pool";
+import { count } from "drizzle-orm";
+import { db } from "../db/client";
+import { user } from "../db/schema";
 
 export async function allowSignup(): Promise<boolean> {
-  const r = await pool.query<{ count: string }>(
-    'SELECT COUNT(*)::text AS count FROM "user"'
-  );
-  const count = parseInt(r.rows[0]?.count ?? "0", 10);
-  return count === 0;
+  const [row] = await db.select({ c: count() }).from(user);
+  const n = Number(row?.c ?? 0);
+  return n === 0;
 }

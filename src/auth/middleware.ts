@@ -1,4 +1,6 @@
-import { pool } from "../db/pool";
+import { and, eq, gt, or, sql } from "drizzle-orm";
+import { db } from "../db/client";
+import { session, user } from "../db/schema";
 
 const PUBLIC_PATHS = ["/login", "/signup", "/api/auth", "/api/allow-signup"];
 const STATIC_PREFIX = "/assets";
@@ -18,18 +20,23 @@ function getCookie(headers: Headers, name: string): string | null {
 /** Resolve session from DB using cookie token. */
 async function getSessionFromDb(cookieValue: string): Promise<{ user: unknown } | null> {
   const tokenPart = cookieValue.split(".")[0];
-  const r = await pool.query<{
-    id: string;
-    name: string;
-    email: string;
-    username: string | null;
-  }>(
-    `SELECT u.id, u.name, u.email, u.username FROM session s
-     JOIN "user" u ON s."userId" = u.id
-     WHERE (s.token = $1 OR s.token = $2) AND s."expiresAt" > NOW()`,
-    [cookieValue, tokenPart]
-  );
-  const row = r.rows[0];
+  const rows = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+    })
+    .from(session)
+    .innerJoin(user, eq(session.userId, user.id))
+    .where(
+      and(
+        or(eq(session.token, cookieValue), eq(session.token, tokenPart)),
+        gt(session.expiresAt, sql`now()`)
+      )
+    )
+    .limit(1);
+  const row = rows[0];
   if (!row) return null;
   return {
     user: {
