@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { userFromAuthPayload, parseGetSessionUser } from "../../lib/authSession";
 import { readStoredSession, SESSION_KEY } from "../../lib/sessionStorage";
 import { getAllowSignup, getSession, signUpEmail } from "../../services/auth";
 
@@ -18,9 +19,8 @@ export function useSignup() {
     getSession()
       .then((r) => r.text())
       .then((text) => {
-        const d = text ? (() => { try { return JSON.parse(text); } catch { return null; } })() : null;
-        const session = d?.data ?? d?.session ?? d ?? null;
-        if (session) navigate("/", { replace: true });
+        const user = parseGetSessionUser(text);
+        if (user) navigate("/", { replace: true });
       })
       .catch(() => {})
       .finally(() => setCheckingSession(false));
@@ -52,14 +52,14 @@ export function useSignup() {
     });
     setLoading(false);
     if (res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const session = data?.user ?? data?.data ?? data;
-      if (session) {
+      const data = await res.json().catch(() => null);
+      const user = userFromAuthPayload(data);
+      if (user) {
         try {
-          sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user: session }));
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user }));
         } catch (_) {}
       }
-      window.location.href = "/";
+      window.location.replace("/");
       return;
     }
     const data = await res.json().catch(() => ({}));

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { parseGetSessionUser } from "../../lib/authSession";
 import { readStoredSession, SESSION_KEY } from "../../lib/sessionStorage";
 import { getSession } from "../../services/auth";
 
@@ -10,12 +11,11 @@ export function useSession() {
     getSession()
       .then((r) => r.text())
       .then((text) => {
-        const d = text ? (() => { try { return JSON.parse(text); } catch { return null; } })() : null;
-        const fromApi = d?.data ?? d?.session ?? d ?? null;
-        if (fromApi) {
-          setSession(fromApi);
+        const user = parseGetSessionUser(text);
+        if (user) {
+          setSession(user);
           try {
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user: fromApi }));
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify({ user }));
           } catch (_) {}
         } else {
           try {

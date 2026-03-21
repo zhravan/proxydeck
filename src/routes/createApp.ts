@@ -12,13 +12,20 @@ import { createSpaStaticHandler } from "../static/spaStatic";
 export function createApp(frontendDistDir: string) {
   const serveStatic = createSpaStaticHandler(frontendDistDir);
 
+  const forwardAuth = (request: Request) => auth.handler(request);
+
   return (
     new Elysia()
       .onBeforeHandle(apiAuthGuard)
       .use(domainRoutes)
       .use(configApiRoutes)
       .use(systemRoutes)
-      .all("/api/auth/*", async ({ request }) => auth.handler(request))
+      // Elysia matches `.get("/*")` before `.all("/api/auth/*")` for GET requests, which
+      // returned an empty body for get-session and broke the SPA session check. Register
+      // auth paths with explicit methods so they win over the SPA catch-all.
+      .get("/api/auth/*", ({ request }) => forwardAuth(request))
+      .post("/api/auth/*", ({ request }) => forwardAuth(request))
+      .options("/api/auth/*", ({ request }) => forwardAuth(request))
       .get("/*", ({ request }) => {
         const pathname = new URL(request.url).pathname;
         if (pathname.startsWith("/api")) return;
