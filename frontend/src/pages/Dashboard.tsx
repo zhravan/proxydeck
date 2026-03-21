@@ -1,6 +1,13 @@
 import { Link } from "react-router-dom";
 import { useDashboard } from "./hooks/useDashboard";
 
+const quickActions: { to: string; title: string; description: string }[] = [
+  { to: "/proxy/sites", title: "Sites", description: "Hosts, routes, upstreams." },
+  { to: "/proxy/config", title: "Config", description: "Preview and apply config." },
+  { to: "/proxy/logs", title: "Logs", description: "Tail proxy logs." },
+  { to: "/proxy/certificates", title: "Certificates", description: "Manage TLS certificates." },
+];
+
 export function Dashboard() {
   const { status } = useDashboard();
 
@@ -31,35 +38,21 @@ export function Dashboard() {
         )}
       </section>
 
-      <section aria-labelledby="quick-actions-heading">
+      <section className="pd-section-stack" aria-labelledby="quick-actions-heading">
         <h2 id="quick-actions-heading" className="mb-4" style={{ fontSize: "var(--text-4)" }}>
           Quick actions
         </h2>
-        <div className="row" style={{ gap: "var(--space-4)", gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))" }}>
-          <Link to="/proxy/sites" className="card p-4 pd-action-card unstyled" style={{ display: "block", color: "inherit" }}>
-            <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Sites</h3>
-            <p className="text-light" style={{ marginBlockEnd: 0 }}>
-              Add and edit hostnames, routes, and upstreams.
-            </p>
-          </Link>
-          <Link to="/proxy/config" className="card p-4 pd-action-card unstyled" style={{ display: "block", color: "inherit" }}>
-            <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Config</h3>
-            <p className="text-light" style={{ marginBlockEnd: 0 }}>
-              Preview, validate, and apply proxy configuration.
-            </p>
-          </Link>
-          <Link to="/proxy/logs" className="card p-4 pd-action-card unstyled" style={{ display: "block", color: "inherit" }}>
-            <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Logs</h3>
-            <p className="text-light" style={{ marginBlockEnd: 0 }}>
-              View proxy log output.
-            </p>
-          </Link>
-          <Link to="/proxy/certificates" className="card p-4 pd-action-card unstyled" style={{ display: "block", color: "inherit" }}>
-            <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Certificates</h3>
-            <p className="text-light" style={{ marginBlockEnd: 0 }}>
-              Manage TLS certificates.
-            </p>
-          </Link>
+        <div className="row pd-quick-actions">
+          {quickActions.map(({ to, title, description }) => (
+            <Link
+              key={to}
+              to={to}
+              className="card pd-action-card pd-action-col col-3 flex flex-col gap-2"
+            >
+              <h3>{title}</h3>
+              <p className="text-light">{description}</p>
+            </Link>
+          ))}
         </div>
       </section>
     </>

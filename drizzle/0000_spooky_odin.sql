@@ -22,6 +22,20 @@ CREATE TABLE "config_history" (
 	"comment" text
 );
 --> statement-breakpoint
+CREATE TABLE "domains" (
+	"id" text PRIMARY KEY NOT NULL,
+	"userId" text NOT NULL,
+	"hostname" text NOT NULL,
+	"registrarName" text,
+	"expiresAt" timestamp (3),
+	"notes" text,
+	"enrichment" jsonb,
+	"enrichedAt" timestamp (3),
+	"createdAt" timestamp (3) DEFAULT now() NOT NULL,
+	"updatedAt" timestamp (3) DEFAULT now() NOT NULL,
+	CONSTRAINT "domains_userId_hostname_unique" UNIQUE("userId","hostname")
+);
+--> statement-breakpoint
 CREATE TABLE "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"userId" text NOT NULL,
@@ -58,4 +72,5 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "domains" ADD CONSTRAINT "domains_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;

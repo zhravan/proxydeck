@@ -4,7 +4,9 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
+import type { DomainEnrichment } from "../domains/enrichment/types";
 
 /** Better Auth core + username plugin */
 export const user = pgTable("user", {
@@ -90,6 +92,31 @@ export const configHistory = pgTable("config_history", {
   provider: text("provider").notNull(),
   comment: text("comment"),
 });
+
+/** User-scoped domain portfolio (manual fields; automated checks come in a later phase). */
+export const domains = pgTable(
+  "domains",
+  {
+    id: text("id").primaryKey(),
+    userId: text("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    hostname: text("hostname").notNull(),
+    registrarName: text("registrarName"),
+    expiresAt: timestamp("expiresAt", { mode: "date", precision: 3 }),
+    notes: text("notes"),
+    /** Last server-side public lookup (RDAP, DNS, TLS, optional geo). */
+    enrichment: jsonb("enrichment").$type<DomainEnrichment | null>(),
+    enrichedAt: timestamp("enrichedAt", { mode: "date", precision: 3 }),
+    createdAt: timestamp("createdAt", { mode: "date", precision: 3 })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date", precision: 3 })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("domains_userId_hostname_unique").on(t.userId, t.hostname)]
+);
 
 export const authSchema = {
   user,

@@ -33,7 +33,7 @@ export function App() {
           }
         >
           <Route index element={<Navigate to="/proxy" replace />} />
-          <Route path="domains" element={<Domains />} />
+          <Route path="domains/*" element={<Domains />} />
           <Route path="proxy" element={<Dashboard />} />
           <Route path="proxy/sites" element={<Sites />} />
           <Route path="proxy/config" element={<Config />} />

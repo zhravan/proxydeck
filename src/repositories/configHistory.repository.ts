@@ -1,8 +1,8 @@
 import { desc, eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 import { db } from "../db/client";
 import { configHistory } from "../db/schema";
 import type { ProxyConfig } from "../proxy/types";
-import { randomUUID } from "crypto";
 
 export interface ConfigHistoryEntry {
   id: string;
@@ -48,7 +48,7 @@ export async function listHistory(): Promise<ConfigHistoryEntry[]> {
   }));
 }
 
-export async function getLatest(): Promise<ProxyConfig | null> {
+export async function getLatestConfigPayload(): Promise<ProxyConfig | null> {
   const rows = await db
     .select({ payload: configHistory.payload })
     .from(configHistory)
@@ -58,7 +58,7 @@ export async function getLatest(): Promise<ProxyConfig | null> {
   return row ? (row.payload as ProxyConfig) : null;
 }
 
-export async function getById(id: string): Promise<ConfigHistoryEntry | null> {
+export async function getHistoryEntryById(id: string): Promise<ConfigHistoryEntry | null> {
   const rows = await db
     .select({
       id: configHistory.id,

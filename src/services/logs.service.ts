@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from "fs";
 
 const LOG_FILE = process.env.PROXY_LOG_FILE ?? "";
 
-export function getLogs(lines = 100): string[] {
+export function readProxyLogTail(lines = 100): string[] {
   if (!LOG_FILE || !existsSync(LOG_FILE)) {
     return ["(No log file configured. Set PROXY_LOG_FILE to a Caddy or Traefik log path.)"];
   }

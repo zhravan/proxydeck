@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { SESSION_KEY } from "../lib/sessionStorage";
+import { AppVersionStamp } from "./AppVersionStamp";
+import { clearBrowserPersistedState } from "../lib/clearClientState";
 import { signOut } from "../services/auth";
 import { useLayoutSidebar } from "./hooks/useLayoutSidebar";
 import "./LayoutOat.css";
@@ -14,11 +15,13 @@ const proxyNav = [
 
 async function handleLogout(e: React.FormEvent) {
   e.preventDefault();
-  await signOut();
   try {
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch (_) {}
-  window.location.href = "/login";
+    await signOut();
+  } catch {
+    /* still clear client; session may already be invalid */
+  }
+  clearBrowserPersistedState();
+  window.location.replace("/login");
 }
 
 export function Layout() {
@@ -30,14 +33,13 @@ export function Layout() {
         <button type="button" data-sidebar-toggle aria-label="Toggle menu" className="outline small">
           ☰
         </button>
-        <span style={{ fontWeight: 600 }}>Proxydeck</span>
+        {/* <span style={{ fontWeight: 600 }}>Proxydeck</span> */}
       </nav>
 
       <aside data-sidebar aria-label="Application">
-        <header>
-          <NavLink to="/proxy" className="unstyled hstack gap-2" aria-label="Proxydeck home">
-            <img src="/logo.svg" alt="" width={32} height={32} style={{ display: "block" }} />
-            <span style={{ fontWeight: 700, fontSize: "var(--text-4)" }}>Proxydeck</span>
+        <header className="pd-sidebar-header">
+          <NavLink to="/proxy" className="pd-sidebar-brand unstyled" aria-label="Proxydeck home">
+            <span className="pd-sidebar-wordmark">Proxydeck</span>
           </NavLink>
         </header>
 
@@ -73,6 +75,16 @@ export function Layout() {
         </nav>
 
         <footer>
+          <AppVersionStamp className="text-light pd-sidebar-version" />
+          <button
+            type="button"
+            className="outline small"
+            onClick={() => {
+              void window.open("/api/docs", "_blank", "noopener,noreferrer");
+            }}
+          >
+            API docs
+          </button>
           <form onSubmit={handleLogout}>
             <button type="submit" className="outline small">
               Log out

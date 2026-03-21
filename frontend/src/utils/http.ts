@@ -2,7 +2,18 @@
  * Same-origin API client: cookies included, optional JSON body helpers.
  */
 
+import { scheduleUnauthorizedLogout } from "../lib/clearClientState";
+
 export type HttpJsonBody = unknown;
+
+/** Paths where 401 must not trigger a client wipe (session probes, public API). */
+function ignoreUnauthorizedForPath(path: string): boolean {
+  if (path.startsWith("/api/auth")) return true;
+  if (path === "/api/health" || path.startsWith("/api/health/")) return true;
+  if (path === "/api/allow-signup" || path.startsWith("/api/allow-signup/")) return true;
+  if (path === "/api/proxy/status" || path.startsWith("/api/proxy/status/")) return true;
+  return false;
+}
 
 function mergeHeaders(a?: HeadersInit, b?: HeadersInit): Headers {
   const out = new Headers(a);
@@ -42,7 +53,12 @@ export function httpRequest(path: string, method: string, options: HttpRequestOp
     init.body = finalBody;
   }
 
-  return fetch(path, init);
+  return fetch(path, init).then((res) => {
+    if (res.status === 401 && path.startsWith("/api") && !ignoreUnauthorizedForPath(path)) {
+      scheduleUnauthorizedLogout();
+    }
+    return res;
+  });
 }
 
 export function httpGet(path: string, init: Omit<RequestInit, "body" | "method"> = {}): Promise<Response> {

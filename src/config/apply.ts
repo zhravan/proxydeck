@@ -2,7 +2,7 @@ import { validateConfig } from "./validate";
 import { detectProxy } from "../proxy/detect";
 import * as caddy from "../proxy/caddy";
 import * as traefik from "../proxy/traefik";
-import { saveToHistory } from "./history";
+import { saveToHistory } from "../repositories/configHistory.repository";
 import type { ProxyConfig } from "../proxy/types";
 
 export async function applyConfig(config: ProxyConfig): Promise<{ ok: boolean; error?: string }> {
