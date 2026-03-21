@@ -1,4 +1,5 @@
 import { swagger } from "@elysiajs/swagger";
+import { appVersion } from "../appVersion";
 
 /**
  * Scalar-based OpenAPI UI + JSON spec. Mounted under `/api/docs` (public; see `PUBLIC_API_PATHS`).
@@ -16,7 +17,7 @@ export function openapiDocsPlugin() {
     documentation: {
       info: {
         title: "ProxyDeck API",
-        version: "0.0.5",
+        version: appVersion,
         description:
           "HTTP API for ProxyDeck. Most `/api/*` routes require a signed-in session (Better Auth cookie). Try requests from the browser while logged in, or use credentials/cookies in your client.",
       },

@@ -1,3 +1,4 @@
+import { AppVersionStamp } from "../components/AppVersionStamp";
 import { useSignup } from "./hooks/useSignup";
 
 export function Signup() {
@@ -9,6 +10,7 @@ export function Signup() {
         <div className="card p-4" style={{ maxWidth: "24rem", width: "100%" }}>
           <p>Loading…</p>
         </div>
+        <AppVersionStamp className="text-light pd-auth-version" />
       </div>
     );
   }
@@ -51,6 +53,7 @@ export function Signup() {
             Already have an account? <a href="/login">Sign in</a>
           </p>
         </article>
+        <AppVersionStamp className="text-light pd-auth-version" />
       </div>
     </div>
   );

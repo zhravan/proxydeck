@@ -1,3 +1,4 @@
+import { AppVersionStamp } from "../components/AppVersionStamp";
 import { useLogin } from "./hooks/useLogin";
 
 export function Login() {
@@ -9,6 +10,7 @@ export function Login() {
         <div className="card p-4" style={{ maxWidth: "24rem", width: "100%" }}>
           <p>Loading…</p>
         </div>
+        <AppVersionStamp className="text-light pd-auth-version" />
       </div>
     );
   }
@@ -65,6 +67,7 @@ export function Login() {
             </p>
           )}
         </article>
+        <AppVersionStamp className="text-light pd-auth-version" />
       </div>
     </div>
   );

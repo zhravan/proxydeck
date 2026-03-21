@@ -327,6 +327,12 @@ pre.pd-code-block code {
   background: var(--pd-surface);
 }
 
+.pd-auth-version {
+  margin: var(--space-4) 0 0;
+  text-align: center;
+  font-size: calc(var(--text-8) * 0.95);
+}
+
 .pd-stack-divider {
   margin-block-start: var(--space-6);
   padding-block-start: var(--space-6);

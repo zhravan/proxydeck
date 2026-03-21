@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { AppVersionStamp } from "./AppVersionStamp";
 import { clearBrowserPersistedState } from "../lib/clearClientState";
 import { signOut } from "../services/auth";
 import { useLayoutSidebar } from "./hooks/useLayoutSidebar";
@@ -74,6 +75,7 @@ export function Layout() {
         </nav>
 
         <footer>
+          <AppVersionStamp className="text-light pd-sidebar-version" />
           <button
             type="button"
             className="outline small"

@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { appVersion } from "../appVersion";
 import { jsonResponse } from "../http/json";
 import { allowSignup } from "../auth/allow-signup";
 import { getProxyStatusSafe } from "../services/proxyStatus.service";
@@ -9,7 +10,7 @@ const systemOpenapi = {
 };
 
 export const systemRoutes = new Elysia()
-  .get("/api/health", () => jsonResponse({ ok: true }), {
+  .get("/api/health", () => jsonResponse({ ok: true, version: appVersion }), {
     detail: {
       ...systemOpenapi,
       summary: "Health check",
