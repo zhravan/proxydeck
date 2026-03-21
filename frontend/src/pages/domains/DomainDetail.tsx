@@ -247,7 +247,7 @@ export function DomainDetail() {
                     Last enriched <time dateTime={snapshotTime}>{formatDateTimeShort(snapshotTime)}</time>
                   </span>
                 ) : (
-                  <span>Run refresh to pull public DNS, WHOIS/RDAP, TLS, and optional subdomain APIs</span>
+                  <span>Run refresh to pull public DNS, WHOIS/RDAP, TLS, and subdomain hints (HackerTarget + optional APIs)</span>
                 )}
                 {dataSourcesLine ? (
                   <span className="pd-domain-detail__muted" style={{ flexBasis: "100%" }}>

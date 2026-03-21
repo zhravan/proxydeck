@@ -11,7 +11,7 @@ function todayIsoDate(): string {
 
 /**
  * Gather registrar/expiry (whois-json → RDAP → WhoisXML), DNS, TLS, optional IP geo,
- * optional subdomain hints (Shodan, DNSDumpster), and per-hostname resolution.
+ * optional subdomain hints (HackerTarget hostsearch, Shodan, DNSDumpster), and per-hostname resolution.
  * Best-effort: partial data with `errors` when individual steps fail.
  */
 export async function enrichDomain(hostname: string): Promise<DomainEnrichment> {

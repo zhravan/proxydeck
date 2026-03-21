@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { auth } from "../auth";
 import { apiAuthGuard } from "../middleware/apiAuthGuard";
+import { requestLogPlugin } from "../middleware/requestLog";
 import { domainRoutes } from "../controllers/domain.controller";
 import { configApiRoutes } from "../controllers/configApi.controller";
 import { systemRoutes } from "../controllers/system.controller";
@@ -16,6 +17,7 @@ export function createApp(frontendDistDir: string) {
 
   return (
     new Elysia()
+      .use(requestLogPlugin())
       .onBeforeHandle(apiAuthGuard)
       .use(domainRoutes)
       .use(configApiRoutes)
