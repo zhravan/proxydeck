@@ -2,16 +2,13 @@
 
 <p align="center">
   <img src="frontend/public/logo.svg" alt="Proxydeck" width="150" />
-  <p align="center">Web dashboard for Caddy/Traefik</p>
+  <p align="center">Web dashboard for domain portfolio & Proxy (Caddy/Traefik) </p>
 </p>
 
 ---
 
-- _**Tech Stack**_: Bun + React, one origin. 
-- _**Needs**_: Bun, PostgreSQL.
 
----
-
+### Setup
 
 
 ```bash
@@ -50,5 +47,7 @@ Set `BETTER_AUTH_SECRET` in `.env`. Either set `DATABASE_URL` (your Postgres; no
 | `PROXY_LOG_FILE` | Proxy log file path (optional) |
 
 </details>
+
+---
 
 </samp>
