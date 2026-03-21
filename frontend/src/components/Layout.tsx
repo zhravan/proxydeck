@@ -74,6 +74,15 @@ export function Layout() {
         </nav>
 
         <footer>
+          <button
+            type="button"
+            className="outline small"
+            onClick={() => {
+              void window.open("/api/docs", "_blank", "noopener,noreferrer");
+            }}
+          >
+            API docs
+          </button>
           <form onSubmit={handleLogout}>
             <button type="submit" className="outline small">
               Log out

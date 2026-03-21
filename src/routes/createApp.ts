@@ -5,6 +5,7 @@ import { requestLogPlugin } from "../middleware/requestLog";
 import { domainRoutes } from "../controllers/domain.controller";
 import { configApiRoutes } from "../controllers/configApi.controller";
 import { systemRoutes } from "../controllers/system.controller";
+import { openapiDocsPlugin } from "../plugins/openapiDocs";
 import { createSpaStaticHandler } from "../static/spaStatic";
 
 /**
@@ -22,6 +23,7 @@ export function createApp(frontendDistDir: string) {
       .use(domainRoutes)
       .use(configApiRoutes)
       .use(systemRoutes)
+      .use(openapiDocsPlugin())
       // Elysia matches `.get("/*")` before `.all("/api/auth/*")` for GET requests, which
       // returned an empty body for get-session and broke the SPA session check. Register
       // auth paths with explicit methods so they win over the SPA catch-all.

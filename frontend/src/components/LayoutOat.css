@@ -73,10 +73,16 @@
   }
 }
 
+.pd-sidebar-layout aside[data-sidebar] footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .pd-sidebar-layout aside[data-sidebar] footer form {
   margin: 0;
 }
 
-.pd-sidebar-layout aside[data-sidebar] footer button[type="submit"] {
+.pd-sidebar-layout aside[data-sidebar] footer button {
   width: 100%;
 }
