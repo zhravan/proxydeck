@@ -71,7 +71,7 @@ export function Sites() {
       <>
         <header className="mb-6">
           <h1>Sites</h1>
-          <p className="text-light">Configure hostnames and reverse proxy routes.</p>
+          <p className="text-light">Proxy — configure hostnames and routes for Caddy or Traefik.</p>
         </header>
         <div className="card p-4">
           <p className="text-light align-center p-4">Loading…</p>
@@ -84,7 +84,7 @@ export function Sites() {
     <>
       <header className="mb-6">
         <h1>Sites</h1>
-        <p className="text-light">Configure hostnames and reverse proxy routes.</p>
+        <p className="text-light">Proxy — configure hostnames and routes for Caddy or Traefik.</p>
         <div className="hstack gap-2 mt-4">
           <span style={{ fontSize: "var(--text-7)" }}>View:</span>
           <button

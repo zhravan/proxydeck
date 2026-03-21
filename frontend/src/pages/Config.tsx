@@ -56,7 +56,7 @@ export function Config() {
       <>
         <header className="mb-6">
           <h1>Config</h1>
-          <p className="text-light">Preview generated config and rollback history.</p>
+          <p className="text-light">Proxy — preview generated config and rollback history.</p>
         </header>
         <div className="card p-4">
           <p className="text-light align-center p-4">Loading…</p>
@@ -70,10 +70,10 @@ export function Config() {
       <header className="mb-6">
         <h1>Config</h1>
         <p className="text-light">
-          Preview of the config that will be applied. Edit and apply from <Link to="/sites">Sites</Link>.
+          Proxy — preview of the config that will be applied. Edit and apply from <Link to="/proxy/sites">Sites</Link>.
         </p>
         <p className="hstack gap-2 mt-2">
-          <Link to="/sites" className="button outline small" style={{ textDecoration: "none" }}>
+          <Link to="/proxy/sites" className="button outline small" style={{ textDecoration: "none" }}>
             Edit & apply on Sites
           </Link>
         </p>

@@ -17,7 +17,7 @@ export function Logs() {
       <>
         <header className="mb-6">
           <h1>Logs</h1>
-          <p className="text-light">Proxy log output.</p>
+          <p className="text-light">Proxy — log output from your configured log file.</p>
         </header>
         <div className="card p-4">
           <p className="text-light align-center p-4">Loading…</p>
@@ -30,7 +30,7 @@ export function Logs() {
     <>
       <header className="mb-6">
         <h1>Logs</h1>
-        <p className="text-light">Proxy log output. Set PROXY_LOG_FILE in the environment to tail a log file.</p>
+        <p className="text-light">Proxy — tail output when PROXY_LOG_FILE is set in the environment.</p>
       </header>
       <article className="card">
         {lines.length === 0 ? (

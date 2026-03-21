@@ -29,8 +29,8 @@ export function Dashboard() {
   return (
     <>
       <header className="mb-6">
-        <h1>Dashboard</h1>
-        <p className="text-light">Overview of your reverse proxy and quick actions.</p>
+        <h1>Proxy dashboard</h1>
+        <p className="text-light">Reverse proxy (Caddy / Traefik) status and quick actions. Domain portfolio lives under Domains.</p>
       </header>
 
       <section className="card mb-6" aria-labelledby="proxy-status-heading">
@@ -51,19 +51,19 @@ export function Dashboard() {
       <section aria-labelledby="quick-actions-heading">
         <h2 id="quick-actions-heading" className="mb-4" style={{ fontSize: "var(--text-4)" }}>Quick actions</h2>
         <div className="row" style={{ gap: "var(--space-4)", gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))" }}>
-          <Link to="/sites" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+          <Link to="/proxy/sites" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
             <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Sites</h3>
             <p className="text-light" style={{ marginBlockEnd: 0 }}>Add and edit hostnames, routes, and upstreams.</p>
           </Link>
-          <Link to="/config" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+          <Link to="/proxy/config" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
             <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Config</h3>
             <p className="text-light" style={{ marginBlockEnd: 0 }}>Preview, validate, and apply proxy configuration.</p>
           </Link>
-          <Link to="/logs" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+          <Link to="/proxy/logs" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
             <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Logs</h3>
             <p className="text-light" style={{ marginBlockEnd: 0 }}>View proxy log output.</p>
           </Link>
-          <Link to="/certificates" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
+          <Link to="/proxy/certificates" className="card p-4" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
             <h3 style={{ marginBlockEnd: "var(--space-2)" }}>Certificates</h3>
             <p className="text-light" style={{ marginBlockEnd: 0 }}>Manage TLS certificates.</p>
           </Link>

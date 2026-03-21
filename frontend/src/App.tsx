@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Layout } from "./components/Layout";
+import { Domains } from "./pages/Domains";
 import { Dashboard } from "./pages/Dashboard";
 import { Sites } from "./pages/Sites";
 import { Config } from "./pages/Config";
@@ -70,11 +71,17 @@ export function App() {
             </Protected>
           }
         >
-          <Route index element={<Dashboard />} />
-          <Route path="sites" element={<Sites />} />
-          <Route path="config" element={<Config />} />
-          <Route path="certificates" element={<Certificates />} />
-          <Route path="logs" element={<Logs />} />
+          <Route index element={<Navigate to="/proxy" replace />} />
+          <Route path="domains" element={<Domains />} />
+          <Route path="proxy" element={<Dashboard />} />
+          <Route path="proxy/sites" element={<Sites />} />
+          <Route path="proxy/config" element={<Config />} />
+          <Route path="proxy/certificates" element={<Certificates />} />
+          <Route path="proxy/logs" element={<Logs />} />
+          <Route path="sites" element={<Navigate to="/proxy/sites" replace />} />
+          <Route path="config" element={<Navigate to="/proxy/config" replace />} />
+          <Route path="certificates" element={<Navigate to="/proxy/certificates" replace />} />
+          <Route path="logs" element={<Navigate to="/proxy/logs" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

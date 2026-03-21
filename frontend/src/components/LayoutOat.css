@@ -1,0 +1,31 @@
+/**
+ * Small additions on top of @knadh/oat sidebar patterns.
+ * @see https://oat.ink/components/sidebar/
+ */
+
+@media (min-width: 769px) {
+  .pd-sidebar-layout > nav[data-topnav].pd-oat-mobile-topnav {
+    display: none;
+  }
+}
+
+/* Oat base layer adds main padding-block-start; inner wrapper already pads */
+.pd-sidebar-layout > main.pd-oat-main {
+  padding-block: 0;
+}
+
+.pd-oat-main-inner {
+  padding: var(--space-6);
+  max-width: 56rem;
+  margin-inline: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pd-sidebar-layout aside[data-sidebar] footer form {
+  margin: 0;
+}
+
+.pd-sidebar-layout aside[data-sidebar] footer button[type="submit"] {
+  width: 100%;
+}

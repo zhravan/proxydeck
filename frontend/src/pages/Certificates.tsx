@@ -23,7 +23,7 @@ export function Certificates() {
       <>
         <header className="mb-6">
           <h1>Certificates</h1>
-          <p className="text-light">TLS certificates managed by your proxy.</p>
+          <p className="text-light">Proxy — TLS certificates managed by Caddy or Traefik.</p>
         </header>
         <div className="card p-4">
           <p className="text-light align-center p-4">Loading…</p>
@@ -36,7 +36,7 @@ export function Certificates() {
     <>
       <header className="mb-6">
         <h1>Certificates</h1>
-        <p className="text-light">TLS certificates (read-only). ACME certs are managed when you add sites with TLS.</p>
+        <p className="text-light">Proxy — TLS certificates (read-only). ACME certs are managed when you add sites with TLS.</p>
       </header>
       <article className="card">
         {certs.length === 0 ? (
