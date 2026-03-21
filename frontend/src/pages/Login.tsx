@@ -44,6 +44,12 @@ export function Login() {
                 placeholder="Your password"
               />
             </div>
+            <div data-field className="hstack gap-2" style={{ alignItems: "center" }}>
+              <input id="rememberMe" name="rememberMe" type="checkbox" />
+              <label htmlFor="rememberMe" style={{ marginBlock: 0, fontWeight: "normal" }}>
+                Remember me on this device
+              </label>
+            </div>
             {error && (
               <div role="alert" data-variant="danger">
                 {error}

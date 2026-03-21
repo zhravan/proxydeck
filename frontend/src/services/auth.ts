@@ -12,6 +12,8 @@ export function signInUsername(payload: {
   username: string;
   password: string;
   callbackURL: string;
+  /** When true, session cookie uses a longer lifetime (better-auth default). */
+  rememberMe?: boolean;
 }): Promise<Response> {
   return httpPost("/api/auth/sign-in/username", { json: payload });
 }

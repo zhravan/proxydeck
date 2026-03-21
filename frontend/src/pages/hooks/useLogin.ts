@@ -39,10 +39,14 @@ export function useLogin() {
     setError("");
     setLoading(true);
     const form = e.currentTarget;
+    const rememberEl = form.elements.namedItem("rememberMe");
+    const rememberMe =
+      rememberEl instanceof HTMLInputElement && rememberEl.type === "checkbox" ? rememberEl.checked : false;
     const res = await signInUsername({
       username: (form.elements.namedItem("username") as HTMLInputElement).value,
       password: (form.elements.namedItem("password") as HTMLInputElement).value,
       callbackURL: "/",
+      rememberMe,
     });
     setLoading(false);
     if (res.ok) {
