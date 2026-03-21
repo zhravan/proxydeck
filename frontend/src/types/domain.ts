@@ -1,3 +1,16 @@
+export type EnrichmentResolvedHost = {
+  hostname: string;
+  ipv4: string[];
+  ipv6: string[];
+  geo: {
+    country?: string;
+    region?: string;
+    city?: string;
+    org?: string;
+    isp?: string;
+  } | null;
+};
+
 export type DomainEnrichment = {
   fetchedAt: string;
   errors?: string[];
@@ -36,6 +49,11 @@ export type DomainEnrichment = {
     org?: string;
     isp?: string;
   } | null;
+  resolvedHosts?: EnrichmentResolvedHost[];
+  enrichmentMetadata?: {
+    registrationSource?: "whois-json" | "rdap" | "whoisxml";
+    subdomainSources?: string[];
+  };
 };
 
 export type Domain = {

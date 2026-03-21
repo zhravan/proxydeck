@@ -1,4 +1,20 @@
 /**
+ * Per-hostname DNS + optional geo (first IPv4) for names discovered under the apex zone.
+ */
+export type EnrichmentResolvedHost = {
+  hostname: string;
+  ipv4: string[];
+  ipv6: string[];
+  geo: {
+    country?: string;
+    region?: string;
+    city?: string;
+    org?: string;
+    isp?: string;
+  } | null;
+};
+
+/**
  * Serializable snapshot from public sources (RDAP, DNS, TLS, optional IP API).
  * Stored as JSON on `domains.enrichment`.
  */
@@ -40,4 +56,11 @@ export type DomainEnrichment = {
     org?: string;
     isp?: string;
   } | null;
+  /** Apex + in-zone names from MX/NS/TLS/www; A/AAAA resolved per name; geo per first IPv4 when enabled. */
+  resolvedHosts?: EnrichmentResolvedHost[];
+  /** Which external services supplied registration / subdomain hints for this snapshot. */
+  enrichmentMetadata?: {
+    registrationSource?: "whois-json" | "rdap" | "whoisxml";
+    subdomainSources?: string[];
+  };
 };

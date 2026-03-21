@@ -4,37 +4,34 @@ import {
   ArrowsClockwise,
   ArrowSquareOut,
   CalendarBlank,
-  CaretDown,
-  CaretUp,
   Certificate,
   ClockCounterClockwise,
   Globe,
-  HardDrives,
   IdentificationCard,
   Info,
   ListBullets,
+  MapPin,
   PencilSimple,
-  TreeStructure,
   Trash,
   Warning,
 } from "@phosphor-icons/react";
 import { deleteDomain, refreshDomainPublic, useDomain } from "../hooks/useDomains";
 import {
-  buildHostnameOverview,
-  buildTargetRows,
   effectiveExpiry,
   effectiveRegistrar,
   formatDateOnly,
   formatDateTimeShort,
+  formatGeoAddress,
+  formatHostAddresses,
   monthsUntilExpiryLabel,
   pickRdapEventDate,
   REG_ACTIONS,
   RENEW_ACTIONS,
+  resolvedHostsForDisplay,
   sortRdapEventsDesc,
 } from "./domainDetailUtils";
 import "./DomainDetail.css";
 
-const TARGETS_PREVIEW = 8;
 const SNAPSHOT_STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
 type DnsTab = "ns" | "mx" | "txt";
@@ -132,24 +129,26 @@ export function DomainDetail() {
   const [deleting, setDeleting] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [targetsExpanded, setTargetsExpanded] = useState(false);
 
   const enrichment = domain?.enrichment ?? null;
   const rdap = enrichment?.rdap;
   const dns = enrichment?.dns;
-  const host = enrichment?.host;
 
-  const overviewHosts = useMemo(
-    () => (domain ? buildHostnameOverview(domain.hostname, enrichment) : []),
+  const hostRows = useMemo(
+    () => (domain ? resolvedHostsForDisplay(domain, enrichment) : []),
     [domain, enrichment]
   );
 
-  const targetRows = useMemo(() => (domain ? buildTargetRows(domain.hostname, enrichment) : []), [domain, enrichment]);
-
-  const visibleTargets = targetsExpanded ? targetRows : targetRows.slice(0, TARGETS_PREVIEW);
-  const canExpandTargets = targetRows.length > TARGETS_PREVIEW;
-
   const historyEvents = useMemo(() => sortRdapEventsDesc(rdap?.events ?? []), [rdap?.events]);
+
+  const dataSourcesLine = useMemo(() => {
+    const m = enrichment?.enrichmentMetadata;
+    if (!m) return null;
+    const parts: string[] = [];
+    if (m.registrationSource) parts.push(`Registration: ${m.registrationSource}`);
+    if (m.subdomainSources?.length) parts.push(`Subdomain discovery: ${m.subdomainSources.join(", ")}`);
+    return parts.length ? parts.join(" · ") : null;
+  }, [enrichment?.enrichmentMetadata]);
 
   const chip = useMemo(
     () => snapshotChipLabel(domain?.enrichedAt, enrichment?.fetchedAt),
@@ -220,9 +219,6 @@ export function DomainDetail() {
 
   const visitUrl = `https://${domain.hostname.replace(/^https?:\/\//i, "")}`;
 
-  const hostLine =
-    [host?.city, host?.region, host?.country].filter(Boolean).join(", ") || (host?.country ?? "—");
-
   const snapshotTime = domain.enrichedAt ?? enrichment?.fetchedAt;
 
   return (
@@ -251,8 +247,13 @@ export function DomainDetail() {
                     Last enriched <time dateTime={snapshotTime}>{formatDateTimeShort(snapshotTime)}</time>
                   </span>
                 ) : (
-                  <span>Run refresh to pull public DNS, RDAP &amp; TLS</span>
+                  <span>Run refresh to pull public DNS, WHOIS/RDAP, TLS, and optional subdomain APIs</span>
                 )}
+                {dataSourcesLine ? (
+                  <span className="pd-domain-detail__muted" style={{ flexBasis: "100%" }}>
+                    {dataSourcesLine}
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
@@ -353,27 +354,6 @@ export function DomainDetail() {
             </dl>
           </div>
 
-          <div className="pd-domain-detail__cell pd-domain-detail__cell--sm">
-            <div className="pd-domain-detail__card-head">
-              <h2>Host</h2>
-              <HardDrives className="pd-domain-detail__card-icon" size={28} weight="duotone" aria-hidden />
-            </div>
-            <dl className="pd-domain-detail__kv">
-              <dt>ISP</dt>
-              <dd>{host?.isp ?? "—"}</dd>
-              <dt>Organization</dt>
-              <dd>{host?.org ?? "—"}</dd>
-              <dt>Address</dt>
-              <dd>{hostLine}</dd>
-              {host?.ip ? (
-                <>
-                  <dt>Resolved IP</dt>
-                  <dd className="pd-mono">{host.ip}</dd>
-                </>
-              ) : null}
-            </dl>
-          </div>
-
           {dns ? (
             <DnsTabsCard ns={dns.ns} mx={dns.mx} txt={dns.txt} />
           ) : (
@@ -387,24 +367,6 @@ export function DomainDetail() {
               </p>
             </div>
           )}
-
-          <div className="pd-domain-detail__cell pd-domain-detail__cell--sm pd-domain-detail__cell--tall">
-            <div className="pd-domain-detail__card-head">
-              <h2>Hostnames</h2>
-              <TreeStructure className="pd-domain-detail__card-icon" size={28} weight="duotone" aria-hidden />
-            </div>
-            {overviewHosts.length > 1 ? (
-              <ul className="pd-domain-detail__host-list">
-                {overviewHosts.map((h) => (
-                  <li key={h}>{h}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="pd-domain-detail__muted" style={{ marginBlockEnd: 0, fontSize: "var(--text-7)", lineHeight: 1.5 }}>
-                Apex only in this snapshot. In-zone names from MX or TLS subject will appear here after refresh.
-              </p>
-            )}
-          </div>
 
           {enrichment?.ssl ? (
             <div className="pd-domain-detail__cell pd-domain-detail__cell--sm">
@@ -428,6 +390,70 @@ export function DomainDetail() {
             </div>
           ) : null}
         </div>
+      </div>
+
+      <div className="pd-domain-detail__section-block">
+        <p className="pd-domain-detail__section-label">Subdomains &amp; hosts</p>
+        <section className="pd-domain-detail__hosts-shell" aria-labelledby="pd-domain-hosts-heading">
+          <div className="pd-domain-detail__hosts-head">
+            <MapPin className="pd-domain-detail__panel-icon" size={26} weight="duotone" aria-hidden />
+            <div>
+              <h2 id="pd-domain-hosts-heading" className="pd-domain-detail__hosts-title">
+                Resolved names under this zone
+              </h2>
+              <p className="pd-domain-detail__hosts-lead pd-domain-detail__muted">
+                Apex, <code className="pd-mono">www</code>, and hostnames hinted by in-zone MX/NS records or the TLS
+                certificate. Run <strong>Refresh data</strong> after DNS changes. ISP and organization need{" "}
+                <code className="pd-mono">DOMAIN_ENRICH_GEO=1</code> on the server (IPv4 only).
+              </p>
+            </div>
+          </div>
+
+          <div className="pd-domain-detail__hosts-table-wrap">
+            <table className="pd-domain-detail__hosts-table">
+              <thead>
+                <tr>
+                  <th scope="col">Subdomain</th>
+                  <th scope="col">Host</th>
+                  <th scope="col">ISP</th>
+                  <th scope="col">Organization</th>
+                  <th scope="col">Address</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hostRows.map((row) => (
+                  <tr key={row.hostname}>
+                    <th scope="row" className="pd-domain-detail__hosts-sub">
+                      {row.hostname}
+                    </th>
+                    <td className="pd-mono pd-domain-detail__hosts-ips">{formatHostAddresses(row.ipv4, row.ipv6)}</td>
+                    <td>{row.geo?.isp ?? "—"}</td>
+                    <td>{row.geo?.org ?? "—"}</td>
+                    <td>{formatGeoAddress(row.geo)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <ul className="pd-domain-detail__hosts-cards" aria-label="Subdomains and host details">
+            {hostRows.map((row) => (
+              <li key={row.hostname} className="pd-domain-detail__hosts-card">
+                <h3 className="pd-domain-detail__hosts-card-title">{row.hostname}</h3>
+                <dl className="pd-domain-detail__kv">
+                  <dt>Host</dt>
+                  <dd className="pd-mono pd-domain-detail__hosts-ips">{formatHostAddresses(row.ipv4, row.ipv6)}</dd>
+                  <dt>ISP</dt>
+                  <dd>{row.geo?.isp ?? "—"}</dd>
+                  <dt>Organization</dt>
+                  <dd>{row.geo?.org ?? "—"}</dd>
+                  <dt>Address</dt>
+                  <dd>{formatGeoAddress(row.geo)}</dd>
+                </dl>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
 
       {domain.notes ? (
@@ -466,54 +492,6 @@ export function DomainDetail() {
             Portfolio updated {formatDateTimeShort(domain.updatedAt)} · Public snapshot{" "}
             {formatDateTimeShort(domain.enrichedAt ?? enrichment?.fetchedAt)}
           </footer>
-        </section>
-
-        <section className="pd-domain-detail__panel" aria-labelledby="pd-domain-targets">
-          <div className="pd-domain-detail__panel-head">
-            <TreeStructure className="pd-domain-detail__panel-icon" size={26} weight="duotone" aria-hidden />
-            <h2 id="pd-domain-targets">DNS targets</h2>
-          </div>
-          <div className="pd-domain-detail__targets">
-            {visibleTargets.map((row, i) => (
-              <article key={`${row.value}-${i}`} className="pd-domain-detail__target-card">
-                <h3>
-                  <span className="pd-domain-detail__target-dot" aria-hidden />
-                  {row.name}
-                </h3>
-                <dl className="pd-domain-detail__kv">
-                  <dt>Type</dt>
-                  <dd>{row.recordType} record</dd>
-                  <dt>Value</dt>
-                  <dd className="pd-mono" style={{ wordBreak: "break-all" }}>
-                    {row.value}
-                  </dd>
-                  <dt>Country</dt>
-                  <dd>{host?.country ?? "—"}</dd>
-                  <dt>Network</dt>
-                  <dd>{host?.org ?? host?.isp ?? "—"}</dd>
-                </dl>
-              </article>
-            ))}
-          </div>
-          {canExpandTargets ? (
-            <div className="pd-domain-detail__expand-wrap">
-              <button
-                type="button"
-                className="pd-domain-detail__expand"
-                onClick={() => setTargetsExpanded((v) => !v)}
-              >
-                {targetsExpanded ? (
-                  <>
-                    Collapse list <CaretUp size={18} weight="bold" aria-hidden />
-                  </>
-                ) : (
-                  <>
-                    Expand list <CaretDown size={18} weight="bold" aria-hidden />
-                  </>
-                )}
-              </button>
-            </div>
-          ) : null}
         </section>
       </div>
     </div>

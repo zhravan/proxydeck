@@ -50,3 +50,10 @@ export async function resolveDns(hostname: string, onError: (msg: string) => voi
     ns: ns.map((h) => h.replace(/\.$/, "")),
   };
 }
+
+/** Resolve A/AAAA without recording errors (used for extra hostnames under the zone). */
+export async function resolveHostRecords(hostname: string): Promise<{ ipv4: string[]; ipv6: string[] }> {
+  const ipv4 = await dns.resolve4(hostname).catch(() => [] as string[]);
+  const ipv6 = await dns.resolve6(hostname).catch(() => [] as string[]);
+  return { ipv4, ipv6 };
+}

@@ -1,4 +1,4 @@
-import type { Domain, DomainEnrichment } from "../../types/domain";
+import type { Domain, DomainEnrichment, EnrichmentResolvedHost } from "../../types/domain";
 
 export function formatDateOnly(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -46,49 +46,6 @@ export function sortRdapEventsDesc(events: { action: string; date: string }[]): 
   return [...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-export function buildHostnameOverview(hostname: string, enrichment: DomainEnrichment | null): string[] {
-  const base = hostname.toLowerCase();
-  const seen = new Set<string>();
-  const add = (h: string) => {
-    const t = h.trim();
-    if (!t) return;
-    const key = t.toLowerCase();
-    if (!seen.has(key)) seen.add(key);
-  };
-
-  add(hostname);
-
-  const sslCn = enrichment?.ssl?.subjectCN?.trim();
-  if (sslCn) {
-    const cn = sslCn.toLowerCase();
-    if ((cn === base || cn.endsWith(`.${base}`)) && cn !== base) add(sslCn);
-  }
-
-  for (const m of enrichment?.dns?.mx ?? []) {
-    const ex = m.exchange.replace(/\.$/, "").trim();
-    if (!ex) continue;
-    const low = ex.toLowerCase();
-    if (low === base || low.endsWith(`.${base}`)) add(ex);
-  }
-
-  return [...seen];
-}
-
-export type TargetRow = { name: string; recordType: string; value: string };
-
-export function buildTargetRows(hostname: string, enrichment: DomainEnrichment | null): TargetRow[] {
-  const rows: TargetRow[] = [];
-  const dns = enrichment?.dns;
-  if (dns) {
-    for (const ip of dns.ipv4) rows.push({ name: hostname, recordType: "A", value: ip });
-    for (const ip of dns.ipv6) rows.push({ name: hostname, recordType: "AAAA", value: ip });
-  }
-  if (!rows.length) {
-    rows.push({ name: hostname, recordType: "—", value: "No A/AAAA records in snapshot" });
-  }
-  return rows;
-}
-
 export function effectiveExpiry(domain: Domain): string | null {
   return domain.expiresAt ?? domain.enrichment?.rdap?.expiresAt ?? domain.enrichment?.suggested?.expiresAt ?? null;
 }
@@ -100,4 +57,38 @@ export function effectiveRegistrar(domain: Domain): string {
     domain.enrichment?.suggested?.registrarName ??
     "—"
   );
+}
+
+/** New enrichments include per-hostname rows; older snapshots fall back to apex DNS + single `host` geo. */
+export function resolvedHostsForDisplay(domain: Domain, enrichment: DomainEnrichment | null): EnrichmentResolvedHost[] {
+  if (enrichment?.resolvedHosts?.length) return enrichment.resolvedHosts;
+  return [
+    {
+      hostname: domain.hostname,
+      ipv4: enrichment?.dns?.ipv4 ?? [],
+      ipv6: enrichment?.dns?.ipv6 ?? [],
+      geo: enrichment?.host
+        ? {
+            country: enrichment.host.country,
+            region: enrichment.host.region,
+            city: enrichment.host.city,
+            org: enrichment.host.org,
+            isp: enrichment.host.isp,
+          }
+        : null,
+    },
+  ];
+}
+
+export function formatHostAddresses(ipv4: string[], ipv6: string[]): string {
+  const lines: string[] = [];
+  for (const ip of ipv4) lines.push(ip);
+  for (const ip of ipv6) lines.push(ip);
+  return lines.length ? lines.join("\n") : "—";
+}
+
+export function formatGeoAddress(geo: EnrichmentResolvedHost["geo"]): string {
+  if (!geo) return "—";
+  const line = [geo.city, geo.region, geo.country].filter(Boolean).join(", ");
+  return line || "—";
 }
