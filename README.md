@@ -25,10 +25,10 @@ bun run db:migrate && bun run build && bun run start
 **Production Deployment:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zhravan/proxydeck/main/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zhravan/proxydeck/main/scripts/bootstrap.sh | bash
 ```
 
-Or clone and run: `git clone https://github.com/zhravan/proxydeck.git && cd proxydeck && ./install.sh`
+Or clone and run: `git clone https://github.com/zhravan/proxydeck.git && cd proxydeck && ./scripts/install.sh`
 
 Set `BETTER_AUTH_SECRET` in `.env`. Either set `DATABASE_URL` (your Postgres; no Postgres container) or leave unset and use bundled Postgres (script will prompt for `POSTGRES_PASSWORD` and run `docker compose --profile db up -d`).
 

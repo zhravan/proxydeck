@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
-cd "$(dirname "$0")"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
 
 if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
   echo "Need Docker and Docker Compose."

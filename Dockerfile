@@ -15,11 +15,10 @@ RUN bun install --frozen-lockfile
 
 COPY . .
 COPY --from=ui /app/frontend/dist ./frontend/dist
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+RUN chmod +x /app/scripts/docker-entrypoint.sh
 
 ENV PORT=3000
 EXPOSE 3000
 
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 CMD ["bun", "run", "start"]

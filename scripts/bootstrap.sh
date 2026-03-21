@@ -6,4 +6,4 @@ BRANCH="${PROXYDECK_BRANCH:-main}"
 TARGET="${PROXYDECK_DIR:-$(mktemp -d)}"
 git clone --depth 1 -b "$BRANCH" "$REPO" "$TARGET"
 cd "$TARGET"
-exec ./install.sh
+exec ./scripts/install.sh
