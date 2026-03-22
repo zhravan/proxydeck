@@ -5,6 +5,10 @@
   <p align="center">Web dashboard for domain portfolio & Proxy (Caddy/Traefik) </p>
 </p>
 
+### Acknowledgments
+
+Libraries, tools, and inspirations: see **[THANKS.md](THANKS.md)**.
+
 ---
 
 
