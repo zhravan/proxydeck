@@ -42,6 +42,9 @@ function siteToRoutersAndServices(site: Site): { routers: string[]; services: st
 }
 
 export function configToYaml(config: ProxyConfig): string {
+  if (config.sites.length === 0) {
+    return ["http:", "  routers: {}", "  services: {}"].join("\n");
+  }
   const allRouters: string[] = [];
   const allServices: string[] = [];
   for (const site of config.sites) {

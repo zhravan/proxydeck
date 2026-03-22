@@ -50,6 +50,7 @@ export const domainRoutes = new Elysia().group("/api/domains", (app) =>
           await createDomainForUser(await getUserIdFromRequest(request), await readJsonBody(request))
         ),
       {
+        parse: "none",
         detail: {
           ...domainOpenapi,
           summary: "Create domain",
@@ -80,6 +81,7 @@ export const domainRoutes = new Elysia().group("/api/domains", (app) =>
           )
         ),
       {
+        parse: "none",
         detail: {
           ...domainOpenapi,
           summary: "Update domain",

@@ -6,6 +6,7 @@ export function Sites() {
   const {
     config,
     loading,
+    applying,
     viewMode,
     setViewMode,
     validateResult,
@@ -22,7 +23,10 @@ export function Sites() {
       <>
         <header className="pd-page-header">
           <h1>Sites</h1>
-          <p className="text-light">Proxy : configure hostnames and routes for Caddy or Traefik.</p>
+          <p className="text-light">
+            Reverse proxy (Caddy/Traefik): add or remove sites anytime. Removing a site applies immediately. Use
+            Apply with no sites to clear all proxy routes. The app on port 3000 is unchanged.
+          </p>
         </header>
         <div className="card p-4">
           <p className="text-light align-center p-4">Loading…</p>
@@ -35,7 +39,10 @@ export function Sites() {
     <>
       <header className="pd-page-header">
         <h1>Sites</h1>
-        <p className="text-light">Proxy : configure hostnames and routes for Caddy or Traefik.</p>
+        <p className="text-light">
+          Reverse proxy (Caddy/Traefik): add or remove sites anytime. Removing a site applies immediately. Use
+          Apply with no sites to clear all proxy routes. The app on port 3000 is unchanged.
+        </p>
         <div className="hstack gap-2 mt-4">
           <span style={{ fontSize: "var(--text-7)" }}>View:</span>
           <button
@@ -71,14 +78,18 @@ export function Sites() {
         )}
         {config.sites.length === 0 ? (
           <div className="align-center p-4">
-            <p className="text-light">No sites yet. Add your first site to get started.</p>
-            <button type="button" className="mt-4" onClick={addSite}>
+            <p className="text-light">
+              No sites in this list. Add a site below, or click <strong>Apply config</strong> to push an empty
+              config and remove all proxy routes from Caddy/Traefik.
+            </p>
+            <button type="button" className="mt-4" onClick={addSite} disabled={applying}>
               Add site
             </button>
           </div>
         ) : viewMode === "table" ? (
           <SitesTable
             sites={config.sites}
+            applying={applying}
             onSwitchToCards={() => setViewMode("cards")}
             onRemove={removeSite}
           />
@@ -86,15 +97,26 @@ export function Sites() {
           <ul className="pd-site-list">
             {config.sites.map((site, i) => (
               <li key={i}>
-                <SiteEditor site={site} onChange={(s) => updateSite(i, s)} onRemove={() => removeSite(i)} />
+                <SiteEditor
+                  site={site}
+                  applying={applying}
+                  onChange={(s) => updateSite(i, s)}
+                  onRemove={() => void removeSite(i)}
+                />
               </li>
             ))}
           </ul>
         )}
         <footer className="hstack gap-2 pd-footer-actions">
-          <button type="button" className="outline" onClick={addSite}>Add site</button>
-          <button type="button" className="outline" onClick={validate} disabled={!config.sites.length}>Validate</button>
-          <button type="button" onClick={apply} disabled={!config.sites.length}>Apply config</button>
+          <button type="button" className="outline" onClick={addSite} disabled={applying}>
+            Add site
+          </button>
+          <button type="button" className="outline" onClick={validate} disabled={applying}>
+            Validate
+          </button>
+          <button type="button" onClick={apply} disabled={applying}>
+            Apply config
+          </button>
         </footer>
       </article>
     </>
@@ -103,12 +125,14 @@ export function Sites() {
 
 function SitesTable({
   sites,
+  applying,
   onSwitchToCards,
   onRemove,
 }: {
   sites: Site[];
+  applying: boolean;
   onSwitchToCards: () => void;
-  onRemove: (index: number) => void;
+  onRemove: (index: number) => void | Promise<void>;
 }) {
   return (
     <div className="table pd-table-gridless" style={{ overflowX: "auto" }}>
@@ -132,7 +156,15 @@ function SitesTable({
                   <button type="button" className="outline small" onClick={onSwitchToCards} title="Edit" aria-label="Edit site">
                     <PencilSimple size={18} weight="duotone" />
                   </button>
-                  <button type="button" className="outline small" data-variant="danger" onClick={() => onRemove(i)} title="Remove" aria-label="Remove site">
+                  <button
+                    type="button"
+                    className="outline small"
+                    data-variant="danger"
+                    disabled={applying}
+                    onClick={() => void onRemove(i)}
+                    title="Remove"
+                    aria-label="Remove site"
+                  >
                     <Trash size={18} weight="duotone" />
                   </button>
                 </span>
@@ -147,10 +179,12 @@ function SitesTable({
 
 function SiteEditor({
   site,
+  applying,
   onChange,
   onRemove,
 }: {
   site: Site;
+  applying: boolean;
   onChange: (s: Site) => void;
   onRemove: () => void;
 }) {
@@ -172,7 +206,15 @@ function SiteEditor({
             }}
           />
         </div>
-        <button type="button" className="outline small" data-variant="danger" onClick={onRemove} title="Remove site" aria-label="Remove site">
+        <button
+          type="button"
+          className="outline small"
+          data-variant="danger"
+          disabled={applying}
+          onClick={onRemove}
+          title="Remove site"
+          aria-label="Remove site"
+        >
           <Trash size={18} weight="duotone" />
         </button>
       </header>

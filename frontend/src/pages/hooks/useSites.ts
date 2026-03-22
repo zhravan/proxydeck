@@ -6,12 +6,15 @@ const emptyConfig: ProxyConfig = { sites: [] };
 
 export type SitesViewMode = "cards" | "table";
 
+type ApplyResponse = { ok: boolean; error?: string };
+
 export function useSites() {
   const [config, setConfig] = useState<ProxyConfig>(emptyConfig);
   const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
   const [viewMode, setViewMode] = useState<SitesViewMode>("cards");
   const [validateResult, setValidateResult] = useState<{ valid: boolean; error?: string } | null>(null);
-  const [applyResult, setApplyResult] = useState<{ ok: boolean; error?: string } | null>(null);
+  const [applyResult, setApplyResult] = useState<ApplyResponse | null>(null);
 
   useEffect(() => {
     getConfigCurrent()
@@ -29,8 +32,29 @@ export function useSites() {
     setConfig({ sites: [...config.sites, newSite] });
   };
 
-  const removeSite = (index: number) => {
-    setConfig({ sites: config.sites.filter((_, i) => i !== index) });
+  /** Removes a site and pushes the new config to the proxy immediately so Caddy/Traefik stay in sync. */
+  const removeSite = async (index: number) => {
+    const next: ProxyConfig = { sites: config.sites.filter((_, i) => i !== index) };
+    setValidateResult(null);
+    setApplyResult(null);
+    setApplying(true);
+    try {
+      const r = await postConfigApply(next);
+      const data = (await r.json()) as ApplyResponse;
+      if (data.ok) {
+        setConfig(next);
+        setApplyResult({ ok: true });
+      } else {
+        setApplyResult({ ok: false, error: data.error ?? "Apply failed" });
+      }
+    } catch (e) {
+      setApplyResult({
+        ok: false,
+        error: e instanceof Error ? e.message : "Apply failed",
+      });
+    } finally {
+      setApplying(false);
+    }
   };
 
   const updateSite = (index: number, site: Site) => {
@@ -50,15 +74,18 @@ export function useSites() {
   const apply = () => {
     setApplyResult(null);
     setValidateResult(null);
+    setApplying(true);
     postConfigApply(config)
       .then((r) => r.json())
       .then(setApplyResult)
-      .catch((e) => setApplyResult({ ok: false, error: e.message }));
+      .catch((e) => setApplyResult({ ok: false, error: e.message }))
+      .finally(() => setApplying(false));
   };
 
   return {
     config,
     loading,
+    applying,
     viewMode,
     setViewMode,
     validateResult,

@@ -166,11 +166,7 @@ function NewDomainForm() {
         )}
         <p className="text-light" style={{ marginBlockEnd: "var(--space-4)" }}>
           By default, saving runs a live <strong>RDAP</strong>, <strong>DNS</strong>, and <strong>TLS</strong> check
-          (similar to{" "}
-          <a href="https://github.com/Lissy93/domain-locker" target="_blank" rel="noreferrer">
-            domain-locker
-          </a>
-          ) and fills empty registrar / expiry fields from registry data. A snapshot is stored on the domain for the
+          and fills empty registrar / expiry fields from registry data. A snapshot is stored on the domain for the
           detail view.
         </p>
         <div className="hstack gap-2" style={{ marginBlockEnd: "var(--space-4)", flexWrap: "wrap" }}>

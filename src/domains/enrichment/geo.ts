@@ -1,5 +1,5 @@
 /**
- * Optional IP geolocation (domain-locker style). Off by default — set DOMAIN_ENRICH_GEO=1 to enable.
+ * Optional IP geolocation. Off by default — set DOMAIN_ENRICH_GEO=1 to enable.
  * Uses ip-api.com free HTTP endpoint (see their fair-use policy).
  */
 
