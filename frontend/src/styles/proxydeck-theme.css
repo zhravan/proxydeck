@@ -416,7 +416,9 @@ pre.pd-code-block code {
 }
 
 /* Oat <dialog> confirm: constrained width on top of oat.min.css */
+/* Stack above `.pd-form-modal` when both are open (add domain → confirm). */
 .pd-confirm-dialog {
+  z-index: 200;
   max-width: min(26rem, 100vw - 2rem);
   margin: auto;
   border: 1px solid color-mix(in srgb, var(--pd-outline-variant) 45%, transparent);
@@ -433,6 +435,7 @@ pre.pd-code-block code {
 
 /* Oat <dialog> for multi-field forms (add domain, server, site, …) */
 .pd-form-modal {
+  z-index: 100;
   max-width: min(42rem, 100vw - 2rem);
   width: 100%;
   max-height: min(90vh, 100% - 2rem);

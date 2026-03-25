@@ -109,28 +109,32 @@ export const AddDomainModal = forwardRef<AddDomainModalHandle, object>(function 
   async function performCreate() {
     setSubmitError(null);
     setSaving(true);
-    const expiresIso = dateInputToIso(fields.expiresAt);
-    if (fields.expiresAt.trim() && expiresIso === null) {
-      setSubmitError("Invalid expiry date.");
-      setSaving(false);
-      return;
-    }
+    try {
+      const expiresIso = dateInputToIso(fields.expiresAt);
+      if (fields.expiresAt.trim() && expiresIso === null) {
+        setSubmitError("Invalid expiry date.");
+        return;
+      }
 
-    const result = await createDomain({
-      hostname: fields.hostname.trim(),
-      registrarName: fields.registrarName.trim() === "" ? null : fields.registrarName.trim(),
-      expiresAt: expiresIso,
-      notes: fields.notes === "" ? null : fields.notes,
-      skipPublicLookup,
-    });
-    setSaving(false);
-    if (!result.ok) {
-      setSubmitError(result.error);
-      return;
+      const result = await createDomain({
+        hostname: fields.hostname.trim(),
+        registrarName: fields.registrarName.trim() === "" ? null : fields.registrarName.trim(),
+        expiresAt: expiresIso,
+        notes: fields.notes === "" ? null : fields.notes,
+        skipPublicLookup,
+      });
+      if (!result.ok) {
+        setSubmitError(result.error);
+        return;
+      }
+      modalRef.current?.close();
+      reset();
+      navigate(`/domains/${result.domain.id}`, { replace: true });
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : "Request failed");
+    } finally {
+      setSaving(false);
     }
-    modalRef.current?.close();
-    reset();
-    navigate(`/domains/${result.domain.id}`, { replace: true });
   }
 
   return (

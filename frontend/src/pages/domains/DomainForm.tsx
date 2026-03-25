@@ -116,26 +116,30 @@ function EditDomainForm({ domain }: { domain: Domain }) {
   async function performSave() {
     setSubmitError(null);
     setSaving(true);
-    const expiresIso = dateInputToIso(expiresAt);
-    if (expiresAt.trim() && expiresIso === null) {
-      setSubmitError("Invalid expiry date.");
-      setSaving(false);
-      return;
-    }
+    try {
+      const expiresIso = dateInputToIso(expiresAt);
+      if (expiresAt.trim() && expiresIso === null) {
+        setSubmitError("Invalid expiry date.");
+        return;
+      }
 
-    const patch: Parameters<typeof updateDomain>[1] = {
-      hostname: hostname.trim(),
-      registrarName: registrarName.trim() === "" ? null : registrarName.trim(),
-      expiresAt: expiresIso,
-      notes: notes === "" ? null : notes,
-    };
-    const result = await updateDomain(domain.id, patch);
-    setSaving(false);
-    if (!result.ok) {
-      setSubmitError(result.error);
-      return;
+      const patch: Parameters<typeof updateDomain>[1] = {
+        hostname: hostname.trim(),
+        registrarName: registrarName.trim() === "" ? null : registrarName.trim(),
+        expiresAt: expiresIso,
+        notes: notes === "" ? null : notes,
+      };
+      const result = await updateDomain(domain.id, patch);
+      if (!result.ok) {
+        setSubmitError(result.error);
+        return;
+      }
+      navigate(`/domains/${domain.id}`, { replace: true });
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : "Request failed");
+    } finally {
+      setSaving(false);
     }
-    navigate(`/domains/${domain.id}`, { replace: true });
   }
 
   return (

@@ -81,11 +81,16 @@ export async function createDomain(input: {
   notes?: string | null;
   skipPublicLookup?: boolean;
 }): Promise<{ ok: true; domain: Domain } | { ok: false; error: string }> {
-  const res = await httpPost("/api/domains", { json: input });
-  if (!res.ok) return { ok: false, error: await readError(res) };
-  const data = (await res.json()) as OneResponse;
-  if (!data.domain) return { ok: false, error: "Invalid response" };
-  return { ok: true, domain: data.domain };
+  try {
+    const res = await httpPost("/api/domains", { json: input });
+    if (!res.ok) return { ok: false, error: await readError(res) };
+    const data = (await res.json()) as OneResponse;
+    if (!data.domain) return { ok: false, error: "Invalid response" };
+    return { ok: true, domain: data.domain };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Request failed";
+    return { ok: false, error: msg };
+  }
 }
 
 export async function updateDomain(
@@ -98,11 +103,16 @@ export async function updateDomain(
     fetchPublicData: boolean;
   }>
 ): Promise<{ ok: true; domain: Domain } | { ok: false; error: string }> {
-  const res = await httpPatch(`/api/domains/${encodeURIComponent(id)}`, { json: patch });
-  if (!res.ok) return { ok: false, error: await readError(res) };
-  const data = (await res.json()) as OneResponse;
-  if (!data.domain) return { ok: false, error: "Invalid response" };
-  return { ok: true, domain: data.domain };
+  try {
+    const res = await httpPatch(`/api/domains/${encodeURIComponent(id)}`, { json: patch });
+    if (!res.ok) return { ok: false, error: await readError(res) };
+    const data = (await res.json()) as OneResponse;
+    if (!data.domain) return { ok: false, error: "Invalid response" };
+    return { ok: true, domain: data.domain };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Request failed";
+    return { ok: false, error: msg };
+  }
 }
 
 export async function refreshDomainPublic(
