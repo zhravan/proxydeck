@@ -28,7 +28,7 @@
     <td align="center">
       <img src="assets/3.png" alt="Server inventory" width="88%" />
       <br />
-      <small>Server inventory</small>
+      <small>Proxy Config</small>
     </td>
   </tr>
 </table>
