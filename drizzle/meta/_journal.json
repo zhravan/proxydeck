@@ -8,6 +8,13 @@
       "when": 1774095492703,
       "tag": "0000_spooky_odin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774437795200,
+      "tag": "0001_strange_jasper_sitwell",
+      "breakpoints": true
     }
   ]
 }
