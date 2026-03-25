@@ -7,22 +7,27 @@
 
 ### UI look & feel
 
-<table>
+<table width="100%">
   <tr>
-    <td align="center" width="33%">
+    <td align="center">
       <img src="assets/1.png" alt="Domain portfolio" width="100%" />
-    </td>
-    <td align="center" width="33%">
-      <img src="assets/2.png" alt="Proxy sites" width="100%" />
-    </td>
-    <td align="center" width="33%">
-      <img src="assets/3.png" alt="Server inventory" width="100%" />
+      <br />
+      <small>Domain portfolio</small>
     </td>
   </tr>
   <tr>
-    <td align="center"><small>Domain portfolio</small></td>
-    <td align="center"><small>Proxy sites</small></td>
-    <td align="center"><small>Server inventory</small></td>
+    <td align="center">
+      <img src="assets/2.png" alt="Proxy sites" width="100%" />
+      <br />
+      <small>Proxy sites</small>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/3.png" alt="Server inventory" width="100%" />
+      <br />
+      <small>Server inventory</small>
+    </td>
   </tr>
 </table>
 
