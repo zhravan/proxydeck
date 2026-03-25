@@ -5,6 +5,8 @@
   <p align="center">Web dashboard for your domain portfolio, server inventory, and reverse proxy (Caddy / Traefik)</p>
 </p>
 
+---
+
 ### UI look & feel
 
 <table width="100%">
