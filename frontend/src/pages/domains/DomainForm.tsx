@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDomainBreadcrumbLabel } from "../../components/breadcrumbs/BreadcrumbContext";
 import { ConfirmDialog, type ConfirmDialogHandle } from "../../components/ConfirmDialog";
 import type { Domain } from "../../types/domain";
-import { createDomain, fetchDomainLookup, updateDomain, useDomain } from "../hooks/useDomains";
+import { updateDomain, useDomain } from "../hooks/useDomains";
 
 function isoToDateInput(iso: string | null): string {
   if (!iso) return "";
@@ -22,7 +22,7 @@ function dateInputToIso(value: string): string | null {
   return d.toISOString();
 }
 
-function DomainFormFields({
+export function DomainFormFields({
   hostname,
   setHostname,
   registrarName,
@@ -88,147 +88,6 @@ function DomainFormFields({
         />
       </div>
     </div>
-  );
-}
-
-function NewDomainForm() {
-  const navigate = useNavigate();
-  const [hostname, setHostname] = useState("");
-  const [registrarName, setRegistrarName] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
-  const [notes, setNotes] = useState("");
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [skipPublicLookup, setSkipPublicLookup] = useState(false);
-  const [lookupLoading, setLookupLoading] = useState(false);
-  const [lookupMessage, setLookupMessage] = useState<string | null>(null);
-  const saveDialogRef = useRef<ConfirmDialogHandle>(null);
-
-  async function handlePrefetch() {
-    setLookupMessage(null);
-    const h = hostname.trim();
-    if (!h) {
-      setLookupMessage("Enter a hostname first.");
-      return;
-    }
-    setLookupLoading(true);
-    const result = await fetchDomainLookup(h);
-    setLookupLoading(false);
-    if (!result.ok) {
-      setLookupMessage(result.error);
-      return;
-    }
-    const sug = result.enrichment.suggested;
-    if (sug?.registrarName) setRegistrarName(sug.registrarName);
-    if (sug?.expiresAt) setExpiresAt(isoToDateInput(sug.expiresAt));
-    const errs = result.enrichment.errors?.length
-      ? ` Some steps reported issues: ${result.enrichment.errors.join("; ")}`
-      : "";
-    setLookupMessage(`Loaded public suggestions.${errs}`);
-  }
-
-  function handleFormSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitError(null);
-    const expiresIso = dateInputToIso(expiresAt);
-    if (expiresAt.trim() && expiresIso === null) {
-      setSubmitError("Invalid expiry date.");
-      return;
-    }
-    saveDialogRef.current?.showModal();
-  }
-
-  async function performCreate() {
-    setSubmitError(null);
-    setSaving(true);
-    const expiresIso = dateInputToIso(expiresAt);
-    if (expiresAt.trim() && expiresIso === null) {
-      setSubmitError("Invalid expiry date.");
-      setSaving(false);
-      return;
-    }
-
-    const result = await createDomain({
-      hostname: hostname.trim(),
-      registrarName: registrarName.trim() === "" ? null : registrarName.trim(),
-      expiresAt: expiresIso,
-      notes: notes === "" ? null : notes,
-      skipPublicLookup,
-    });
-    setSaving(false);
-    if (!result.ok) {
-      setSubmitError(result.error);
-      return;
-    }
-    navigate(`/domains/${result.domain.id}`, { replace: true });
-  }
-
-  return (
-    <>
-      <ConfirmDialog
-        ref={saveDialogRef}
-        title="Create domain?"
-        message="Save this domain to your portfolio?"
-        confirmLabel="Create"
-        onConfirm={() => void performCreate()}
-      />
-      <header className="pd-page-header">
-        <h1>Add domain</h1>
-      </header>
-      <form className="card p-4" onSubmit={(e) => void handleFormSubmit(e)}>
-        {submitError && (
-          <div role="alert" data-variant="danger" style={{ marginBlockEnd: "var(--space-4)" }}>
-            {submitError}
-          </div>
-        )}
-        <p className="text-light" style={{ marginBlockEnd: "var(--space-4)" }}>
-          By default, saving runs a live <strong>RDAP</strong>, <strong>DNS</strong>, and <strong>TLS</strong> check
-          and fills empty registrar / expiry fields from registry data. A snapshot is stored on the domain for the
-          detail view.
-        </p>
-        <div className="hstack gap-2" style={{ marginBlockEnd: "var(--space-4)", flexWrap: "wrap" }}>
-          <button
-            type="button"
-            className="outline"
-            disabled={lookupLoading || saving}
-            onClick={() => void handlePrefetch()}
-          >
-            {lookupLoading ? "Fetching…" : "Prefetch public records"}
-          </button>
-        </div>
-        {lookupMessage ? (
-          <p className="text-light" role="status" style={{ marginBlockEnd: "var(--space-4)" }}>
-            {lookupMessage}
-          </p>
-        ) : null}
-        <label className="hstack gap-2" style={{ marginBlockEnd: "var(--space-4)", cursor: "pointer" }}>
-          <input
-            type="checkbox"
-            checked={skipPublicLookup}
-            onChange={(e) => setSkipPublicLookup(e.target.checked)}
-          />
-          <span className="text-light">Save without public lookup (offline / privacy)</span>
-        </label>
-        <DomainFormFields
-          hostname={hostname}
-          setHostname={setHostname}
-          registrarName={registrarName}
-          setRegistrarName={setRegistrarName}
-          expiresAt={expiresAt}
-          setExpiresAt={setExpiresAt}
-          notes={notes}
-          setNotes={setNotes}
-        />
-        <footer className="hstack gap-2 pd-footer-actions">
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Create"}
-          </button>
-          <Link to="/domains" className="button outline">
-            Cancel
-          </Link>
-        </footer>
-      </form>
-    </>
   );
 }
 
@@ -320,12 +179,12 @@ function EditDomainForm({ domain }: { domain: Domain }) {
   );
 }
 
+/** Edit flow only; add domain uses `AddDomainModal` on the portfolio list. */
 export function DomainForm() {
   const { id } = useParams<{ id: string }>();
-  const isEdit = Boolean(id);
   const { domain, loading, error: loadError } = useDomain(id);
 
-  if (isEdit && loading) {
+  if (loading) {
     return (
       <>
         <header className="pd-page-header">
@@ -338,7 +197,7 @@ export function DomainForm() {
     );
   }
 
-  if (isEdit && loadError) {
+  if (loadError) {
     return (
       <>
         <header className="pd-page-header">
@@ -351,9 +210,21 @@ export function DomainForm() {
     );
   }
 
-  if (isEdit && domain) {
+  if (domain) {
     return <EditDomainForm key={domain.id} domain={domain} />;
   }
 
-  return <NewDomainForm />;
+  return (
+    <>
+      <header className="pd-page-header">
+        <h1>Edit domain</h1>
+      </header>
+      <div className="card p-4" role="alert" data-variant="danger">
+        <p style={{ marginBlockEnd: 0 }}>Domain not found.</p>
+        <Link to="/domains" className="button outline mt-4">
+          Back to portfolio
+        </Link>
+      </div>
+    </>
+  );
 }

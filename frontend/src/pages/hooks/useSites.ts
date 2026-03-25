@@ -8,6 +8,14 @@ export type SitesViewMode = "cards" | "table";
 
 type ApplyResponse = { ok: boolean; error?: string };
 
+/** Default template for the add-site modal on the Sites page. */
+export function createEmptySite(): Site {
+  return {
+    hostnames: [""],
+    routes: [{ match: "/", matchType: "path", upstreams: [{ address: "localhost:8080" }] }],
+  };
+}
+
 export type UseSitesOptions = {
   /** When set, appended once after /api/config/current loads (e.g. from domain → Sites flow). */
   pendingSite?: Site | null;
@@ -66,12 +74,11 @@ export function useSites(options?: UseSitesOptions) {
     };
   }, [capturedPendingSite]);
 
-  const addSite = () => {
-    const newSite: Site = {
-      hostnames: [""],
-      routes: [{ match: "/", matchType: "path", upstreams: [{ address: "localhost:8080" }] }],
-    };
-    setConfig({ sites: [...config.sites, newSite] });
+  /** Default template for a new proxy site (used by the add-site modal). */
+  const appendSite = (site: Site) => {
+    setValidateResult(null);
+    setApplyResult(null);
+    setConfig({ sites: [...config.sites, site] });
   };
 
   /** Removes a site and pushes the new config to the proxy immediately so Caddy/Traefik stay in sync. */
@@ -133,7 +140,7 @@ export function useSites(options?: UseSitesOptions) {
     validateResult,
     applyResult,
     draftHostnamesOverlap,
-    addSite,
+    appendSite,
     removeSite,
     updateSite,
     validate,

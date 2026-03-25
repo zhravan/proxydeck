@@ -1,6 +1,9 @@
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "@phosphor-icons/react";
 import type { Domain } from "../../types/domain";
+import type { AddDomainModalHandle } from "./AddDomainModal";
+import { AddDomainModal } from "./AddDomainModal";
 import { useDomains } from "../hooks/useDomains";
 
 function formatDate(iso: string | null): string {
@@ -20,6 +23,7 @@ function tlsValidTo(d: Domain): string {
 
 export function DomainList() {
   const { domains, loading, error } = useDomains();
+  const addDomainModalRef = useRef<AddDomainModalHandle>(null);
 
   if (loading) {
     return (
@@ -37,18 +41,20 @@ export function DomainList() {
 
   return (
     <>
+      <AddDomainModal ref={addDomainModalRef} />
       <header className="pd-page-header">
         <h1>Domains</h1>
         <p className="text-light">Your domain portfolio (separate from proxy site configuration).</p>
         <div className="hstack gap-2 mt-4">
-          <Link
-            to="/domains/new"
+          <button
+            type="button"
             className="button"
             style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            onClick={() => addDomainModalRef.current?.showModal()}
           >
             <Plus size={20} weight="duotone" aria-hidden />
             Add domain
-          </Link>
+          </button>
           <Link to="/domains/servers" className="outline button">
             Servers
           </Link>
@@ -68,7 +74,15 @@ export function DomainList() {
         {domains.length === 0 ? (
           <p className="text-light" style={{ marginBlockEnd: 0 }}>
             No domains yet.{" "}
-            <Link to="/domains/new">Add your first domain</Link>.
+            <button
+              type="button"
+              className="unstyled"
+              style={{ color: "var(--pd-primary-tint)", textDecoration: "underline", cursor: "pointer" }}
+              onClick={() => addDomainModalRef.current?.showModal()}
+            >
+              Add your first domain
+            </button>
+            .
           </p>
         ) : (
           <div className="table pd-table-gridless" style={{ overflowX: "auto" }}>

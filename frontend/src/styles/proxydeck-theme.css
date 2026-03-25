@@ -430,3 +430,71 @@ pre.pd-code-block code {
   margin-block: 0 0.35rem;
   font-size: var(--text-3);
 }
+
+/* Oat <dialog> for multi-field forms (add domain, server, site, …) */
+.pd-form-modal {
+  max-width: min(42rem, 100vw - 2rem);
+  width: 100%;
+  max-height: min(90vh, 100% - 2rem);
+  margin: auto;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--pd-outline-variant) 45%, transparent);
+  background: var(--pd-surface, var(--background));
+}
+
+.pd-form-modal::backdrop {
+  background: color-mix(in srgb, var(--pd-surface) 55%, #000);
+}
+
+.pd-form-modal__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 100vh - 2rem);
+}
+
+.pd-form-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  padding-block-end: var(--space-3);
+  border-bottom: 1px solid color-mix(in srgb, var(--pd-outline-variant) 35%, transparent);
+  flex-shrink: 0;
+}
+
+.pd-form-modal__title {
+  margin: 0;
+  font-size: var(--text-4);
+  font-weight: 600;
+}
+
+.pd-form-modal__description {
+  margin-block: 0.35rem 0;
+  font-size: var(--text-7);
+}
+
+.pd-form-modal__title-block {
+  min-width: 0;
+  flex: 1;
+}
+
+.pd-form-modal__close {
+  flex-shrink: 0;
+  line-height: 1;
+  padding-inline: 0.65rem;
+}
+
+.pd-form-modal__body {
+  padding: var(--space-4);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.pd-form-modal__footer {
+  padding: var(--space-4);
+  padding-block-start: var(--space-3);
+  border-top: 1px solid color-mix(in srgb, var(--pd-outline-variant) 35%, transparent);
+  flex-shrink: 0;
+}

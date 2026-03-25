@@ -1,10 +1,11 @@
-import { PencilSimple, SquaresFour, Table, Trash } from "@phosphor-icons/react";
+import { PencilSimple, Plus, SquaresFour, Table, Trash } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ConfirmDialog, type ConfirmDialogHandle } from "../components/ConfirmDialog";
+import { OatFormModal, type OatFormModalHandle } from "../components/OatFormModal";
 import type { Site, Route, Upstream } from "../types/proxy";
 import type { PdDraftSiteLocationState } from "./domains/buildDraftSiteFromDomain";
-import { useSites } from "./hooks/useSites";
+import { createEmptySite, useSites } from "./hooks/useSites";
 
 function readPdDraftFromLocationState(state: unknown) {
   if (state === null || typeof state !== "object" || !("pdDraftSite" in state)) return null;
@@ -21,6 +22,8 @@ export function Sites() {
   const removeDialogRef = useRef<ConfirmDialogHandle>(null);
   const pendingRemoveRef = useRef<number | null>(null);
   const applyDialogRef = useRef<ConfirmDialogHandle>(null);
+  const addSiteModalRef = useRef<OatFormModalHandle>(null);
+  const [draftSite, setDraftSite] = useState<Site>(() => createEmptySite());
 
   const {
     config,
@@ -31,12 +34,27 @@ export function Sites() {
     validateResult,
     applyResult,
     draftHostnamesOverlap,
-    addSite,
+    appendSite,
     removeSite,
     updateSite,
     validate,
     apply,
   } = useSites({ pendingSite: navDraft?.site ?? null });
+
+  const openAddSiteModal = useCallback(() => {
+    setDraftSite(createEmptySite());
+    addSiteModalRef.current?.showModal();
+  }, []);
+
+  const handleAddSiteModalClose = useCallback(() => {
+    setDraftSite(createEmptySite());
+  }, []);
+
+  const submitDraftSite = useCallback(() => {
+    appendSite(draftSite);
+    addSiteModalRef.current?.close();
+    setDraftSite(createEmptySite());
+  }, [appendSite, draftSite]);
 
   const requestRemoveSite = useCallback((index: number) => {
     pendingRemoveRef.current = index;
@@ -89,6 +107,30 @@ export function Sites() {
         confirmLabel="Apply"
         onConfirm={() => void apply()}
       />
+      <OatFormModal
+        ref={addSiteModalRef}
+        title="Add site"
+        description="Define hostnames and at least one route with upstreams. Nothing is sent to the proxy until you use Apply config."
+        onClose={handleAddSiteModalClose}
+        footer={
+          <div className="hstack gap-2" style={{ flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <button type="button" className="outline" onClick={() => addSiteModalRef.current?.close()}>
+              Cancel
+            </button>
+            <button type="button" onClick={submitDraftSite} disabled={applying}>
+              Add to list
+            </button>
+          </div>
+        }
+      >
+        <SiteEditor
+          site={draftSite}
+          applying={applying}
+          showRemove={false}
+          onChange={setDraftSite}
+          onRemove={() => {}}
+        />
+      </OatFormModal>
       <header className="pd-page-header">
         <h1>Sites</h1>
         <p className="text-light">
@@ -96,6 +138,16 @@ export function Sites() {
           Apply with no sites to clear all proxy routes. The app on port 3000 is unchanged.
         </p>
         <div className="hstack gap-2 mt-4">
+          <button
+            type="button"
+            className="button"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            onClick={openAddSiteModal}
+            disabled={applying}
+          >
+            <Plus size={20} weight="duotone" aria-hidden />
+            Add site
+          </button>
           <span style={{ fontSize: "var(--text-7)" }}>View:</span>
           <button
             type="button"
@@ -136,10 +188,10 @@ export function Sites() {
         {config.sites.length === 0 ? (
           <div className="align-center p-4">
             <p className="text-light">
-              No sites in this list. Add a site below, or click <strong>Apply config</strong> to push an empty
-              config and remove all proxy routes from Caddy/Traefik.
+              No sites in this list. Use <strong>Add site</strong> to define hostnames and routes, or click{" "}
+              <strong>Apply config</strong> to push an empty config and remove all proxy routes from Caddy/Traefik.
             </p>
-            <button type="button" className="mt-4" onClick={addSite} disabled={applying}>
+            <button type="button" className="mt-4" onClick={openAddSiteModal} disabled={applying}>
               Add site
             </button>
           </div>
@@ -165,7 +217,7 @@ export function Sites() {
           </ul>
         )}
         <footer className="hstack gap-2 pd-footer-actions">
-          <button type="button" className="outline" onClick={addSite} disabled={applying}>
+          <button type="button" className="outline" onClick={openAddSiteModal} disabled={applying}>
             Add site
           </button>
           <button type="button" className="outline" onClick={validate} disabled={applying}>
@@ -239,11 +291,14 @@ function SiteEditor({
   applying,
   onChange,
   onRemove,
+  showRemove = true,
 }: {
   site: Site;
   applying: boolean;
   onChange: (s: Site) => void;
   onRemove: () => void;
+  /** When false (e.g. add-site modal), the remove control is hidden. */
+  showRemove?: boolean;
 }) {
   const setHostnames = (hostnames: string[]) => onChange({ ...site, hostnames });
   const setRoutes = (routes: Route[]) => onChange({ ...site, routes });
@@ -263,17 +318,19 @@ function SiteEditor({
             }}
           />
         </div>
-        <button
-          type="button"
-          className="outline small"
-          data-variant="danger"
-          disabled={applying}
-          onClick={onRemove}
-          title="Remove site"
-          aria-label="Remove site"
-        >
-          <Trash size={18} weight="duotone" />
-        </button>
+        {showRemove ? (
+          <button
+            type="button"
+            className="outline small"
+            data-variant="danger"
+            disabled={applying}
+            onClick={onRemove}
+            title="Remove site"
+            aria-label="Remove site"
+          >
+            <Trash size={18} weight="duotone" />
+          </button>
+        ) : null}
       </header>
       <div className="vstack gap-4 mt-4">
         <h3 style={{ fontSize: "var(--text-4)", marginBlockEnd: 0 }}>Routes</h3>

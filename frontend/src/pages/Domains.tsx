@@ -9,7 +9,7 @@ export function Domains() {
     <Routes>
       <Route index element={<DomainList />} />
       <Route path="servers" element={<Servers />} />
-      <Route path="new" element={<DomainForm />} />
+      <Route path="new" element={<Navigate to="/domains" replace />} />
       <Route path=":id" element={<DomainDetail />} />
       <Route path=":id/edit" element={<DomainForm />} />
       <Route path="*" element={<Navigate to="/domains" replace />} />

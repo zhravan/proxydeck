@@ -52,13 +52,6 @@ export function buildBreadcrumbs(pathname: string, domainLabel: string | null): 
       { to: "/domains/servers", label: "Servers" },
     ];
   }
-  if (path === "/domains/new") {
-    return [
-      { to: "/domains", label: "Portfolio" },
-      { to: "/domains/new", label: "Add domain" },
-    ];
-  }
-
   const editMatch = path.match(/^\/domains\/([^/]+)\/edit$/);
   if (editMatch) {
     const id = editMatch[1];

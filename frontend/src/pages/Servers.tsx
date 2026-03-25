@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Trash } from "@phosphor-icons/react";
+import { Plus, Trash } from "@phosphor-icons/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ConfirmDialog, type ConfirmDialogHandle } from "../components/ConfirmDialog";
+import { OatFormModal, type OatFormModalHandle } from "../components/OatFormModal";
 import type { InfrastructureServer } from "../types/infrastructureServer";
 import { useDomains } from "./hooks/useDomains";
 import { useServers } from "./hooks/useServers";
@@ -54,6 +55,7 @@ export function Servers() {
   const [saving, setSaving] = useState(false);
   const removeDialogRef = useRef<ConfirmDialogHandle>(null);
   const pendingRemoveId = useRef<string | null>(null);
+  const serverModalRef = useRef<OatFormModalHandle>(null);
 
   const domainById = useMemo(() => {
     const m = new Map<string, string>();
@@ -65,12 +67,21 @@ export function Servers() {
     setForm(emptyForm());
     setEditingId(null);
     setFormError(null);
+    serverModalRef.current?.close();
+  }, []);
+
+  const openAddServerModal = useCallback(() => {
+    setForm(emptyForm());
+    setEditingId(null);
+    setFormError(null);
+    serverModalRef.current?.showModal();
   }, []);
 
   const startEdit = useCallback((s: InfrastructureServer) => {
     setEditingId(s.id);
     setForm(serverToForm(s));
     setFormError(null);
+    serverModalRef.current?.showModal();
   }, []);
 
   const requestRemove = useCallback((id: string) => {
@@ -163,32 +174,33 @@ export function Servers() {
         danger
         onConfirm={() => void confirmRemove()}
       />
-      <header className="pd-page-header">
-        <h1>Servers</h1>
-        <p className="text-light">
-          Track Hetzner, Contabo, AWS EC2, and other hosts in one place. Link entries to portfolio domains for
-          context. Store secrets in a password manager-never here.
-        </p>
-      </header>
-
-      {error && (
-        <div className="card mb-4" role="alert" data-variant="danger">
-          {error}
-        </div>
-      )}
-
-      <div className="vstack gap-4">
-        <article className="card" aria-labelledby="server-form-heading">
-          <h2 id="server-form-heading" className="mb-4" style={{ fontSize: "var(--text-4)" }}>
-            {editingId ? "Edit server" : "Add server"}
-          </h2>
-          <form onSubmit={(e) => void onSubmit(e)} className="vstack gap-4">
-            {formError && (
-              <div className="card" role="alert" data-variant="danger">
-                {formError}
-              </div>
-            )}
-            <div className="vstack gap-4" style={{ maxWidth: "36rem" }}>
+      <OatFormModal
+        ref={serverModalRef}
+        title={editingId ? "Edit server" : "Add server"}
+        description="Metadata only—do not store passwords or API keys. Console and runbook links must use https."
+        onClose={() => {
+          setForm(emptyForm());
+          setEditingId(null);
+          setFormError(null);
+        }}
+        footer={
+          <div className="hstack gap-2" style={{ flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <button type="button" className="outline" onClick={() => serverModalRef.current?.close()}>
+              Cancel
+            </button>
+            <button type="submit" form="pd-server-form" className="button" disabled={saving}>
+              {saving ? "Saving…" : editingId ? "Save changes" : "Add server"}
+            </button>
+          </div>
+        }
+      >
+        <form id="pd-server-form" onSubmit={(e) => void onSubmit(e)} className="vstack gap-4">
+          {formError && (
+            <div role="alert" data-variant="danger">
+              {formError}
+            </div>
+          )}
+          <div className="vstack gap-4">
               <div data-field>
                 <label htmlFor="srv-name">Name</label>
                 <input
@@ -323,30 +335,46 @@ export function Servers() {
               ) : (
                 <p className="text-light" style={{ marginBlockEnd: 0 }}>
                   No domains in portfolio yet.{" "}
-                  <Link to="/domains/new">Add a domain</Link> to link it here.
+                  <Link to="/domains">Open Portfolio</Link> to add a domain, then link it here.
                 </p>
               )}
             </div>
-            <div className="hstack gap-2">
-              <button type="submit" className="button" disabled={saving}>
-                {saving ? "Saving…" : editingId ? "Save changes" : "Add server"}
-              </button>
-              {editingId ? (
-                <button type="button" className="outline" onClick={resetForm} disabled={saving}>
-                  Cancel edit
-                </button>
-              ) : null}
-            </div>
-          </form>
-        </article>
+        </form>
+      </OatFormModal>
 
+      <header className="pd-page-header">
+        <h1>Servers</h1>
+        <p className="text-light">
+          Track Hetzner, Contabo, AWS EC2, and other hosts in one place. Link entries to portfolio domains for
+          context. Store secrets in a password manager—never here.
+        </p>
+        <div className="hstack gap-2 mt-4">
+          <button
+            type="button"
+            className="button"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            onClick={openAddServerModal}
+          >
+            <Plus size={20} weight="duotone" aria-hidden />
+            Add server
+          </button>
+        </div>
+      </header>
+
+      {error && (
+        <div className="card mb-4" role="alert" data-variant="danger">
+          {error}
+        </div>
+      )}
+
+      <div className="vstack gap-4">
         <section className="card" aria-labelledby="server-list-heading">
           <h2 id="server-list-heading" className="mb-4" style={{ fontSize: "var(--text-4)" }}>
             Inventory
           </h2>
           {servers.length === 0 ? (
             <p className="text-light" style={{ marginBlockEnd: 0 }}>
-              No servers yet. Use the form above to add your first entry.
+              No servers yet. Use <strong>Add server</strong> to create your first entry.
             </p>
           ) : (
             <div className="table pd-table-gridless" style={{ overflowX: "auto" }}>
