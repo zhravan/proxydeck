@@ -46,6 +46,12 @@ export function buildBreadcrumbs(pathname: string, domainLabel: string | null): 
   if (path === "/domains") {
     return [{ to: "/domains", label: "Portfolio" }];
   }
+  if (path === "/domains/servers") {
+    return [
+      { to: "/domains", label: "Portfolio" },
+      { to: "/domains/servers", label: "Servers" },
+    ];
+  }
   if (path === "/domains/new") {
     return [
       { to: "/domains", label: "Portfolio" },

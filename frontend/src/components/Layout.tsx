@@ -55,6 +55,11 @@ export function Layout() {
                       Portfolio
                     </NavLink>
                   </li>
+                  <li>
+                    <NavLink to="/domains/servers" end>
+                      Servers
+                    </NavLink>
+                  </li>
                 </ul>
               </details>
             </li>

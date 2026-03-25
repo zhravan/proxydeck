@@ -395,10 +395,10 @@ export function DomainDetail() {
               </div>
               <dl className="pd-domain-detail__kv">
                 <dt>Subject</dt>
-                <dd>{enrichment.ssl.subjectCN ?? "—"}</dd>
+                <dd>{enrichment.ssl.subjectCN ?? "-"}</dd>
                 <dt>Issuer</dt>
                 <dd>
-                  {enrichment.ssl.issuerO ?? "—"}
+                  {enrichment.ssl.issuerO ?? "-"}
                   {enrichment.ssl.issuerC ? ` (${enrichment.ssl.issuerC})` : ""}
                 </dd>
                 <dt>Valid</dt>
@@ -446,8 +446,8 @@ export function DomainDetail() {
                       {row.hostname}
                     </th>
                     <td className="pd-mono pd-domain-detail__hosts-ips">{formatHostAddresses(row.ipv4, row.ipv6)}</td>
-                    <td>{row.geo?.isp ?? "—"}</td>
-                    <td>{row.geo?.org ?? "—"}</td>
+                    <td>{row.geo?.isp ?? "-"}</td>
+                    <td>{row.geo?.org ?? "-"}</td>
                     <td>{formatGeoAddress(row.geo)}</td>
                   </tr>
                 ))}
@@ -463,9 +463,9 @@ export function DomainDetail() {
                   <dt>Host</dt>
                   <dd className="pd-mono pd-domain-detail__hosts-ips">{formatHostAddresses(row.ipv4, row.ipv6)}</dd>
                   <dt>ISP</dt>
-                  <dd>{row.geo?.isp ?? "—"}</dd>
+                  <dd>{row.geo?.isp ?? "-"}</dd>
                   <dt>Organization</dt>
-                  <dd>{row.geo?.org ?? "—"}</dd>
+                  <dd>{row.geo?.org ?? "-"}</dd>
                   <dt>Address</dt>
                   <dd>{formatGeoAddress(row.geo)}</dd>
                 </dl>

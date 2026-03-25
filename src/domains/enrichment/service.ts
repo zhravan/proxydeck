@@ -43,7 +43,7 @@ export async function enrichDomain(hostname: string): Promise<DomainEnrichment> 
   if (expiresAt) {
     const expStr = expiresAt.toISOString().slice(0, 10);
     if (expStr === todayIsoDate()) {
-      errors.push("RDAP expiry equals today — ignored as likely parse noise");
+      errors.push("RDAP expiry equals today - ignored as likely parse noise");
       expiresAt = null;
     }
   }

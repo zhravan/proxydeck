@@ -120,7 +120,7 @@ export const domains = pgTable(
 
 /**
  * User-scoped server inventory (Hetzner, Contabo, AWS EC2, etc.).
- * Metadata only — no secrets or credentials.
+ * Metadata only - no secrets or credentials.
  */
 export const infrastructureServers = pgTable("infrastructure_servers", {
   id: text("id").primaryKey(),

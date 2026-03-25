@@ -1,16 +1,16 @@
 import type { Domain, DomainEnrichment, EnrichmentResolvedHost } from "../../types/domain";
 
 export function formatDateOnly(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleDateString(undefined, { dateStyle: "long" });
 }
 
 export function formatDateTimeShort(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
@@ -55,7 +55,7 @@ export function effectiveRegistrar(domain: Domain): string {
     domain.registrarName ??
     domain.enrichment?.rdap?.registrarName ??
     domain.enrichment?.suggested?.registrarName ??
-    "—"
+    "-"
   );
 }
 
@@ -84,11 +84,11 @@ export function formatHostAddresses(ipv4: string[], ipv6: string[]): string {
   const lines: string[] = [];
   for (const ip of ipv4) lines.push(ip);
   for (const ip of ipv6) lines.push(ip);
-  return lines.length ? lines.join("\n") : "—";
+  return lines.length ? lines.join("\n") : "-";
 }
 
 export function formatGeoAddress(geo: EnrichmentResolvedHost["geo"]): string {
-  if (!geo) return "—";
+  if (!geo) return "-";
   const line = [geo.city, geo.region, geo.country].filter(Boolean).join(", ");
-  return line || "—";
+  return line || "-";
 }

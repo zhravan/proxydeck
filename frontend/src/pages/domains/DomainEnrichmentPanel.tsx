@@ -1,7 +1,7 @@
 import type { DomainEnrichment } from "../../types/domain";
 
 function formatTs(s: string | undefined): string {
-  if (!s) return "—";
+  if (!s) return "-";
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return s;
   return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -64,7 +64,7 @@ export function DomainEnrichmentPanel({ enrichment }: { enrichment: DomainEnrich
           <div className="text-light" style={{ fontSize: "var(--text-7)" }}>
             Domain status (RDAP)
           </div>
-          <List items={rdap.domainStatus} empty="—" />
+          <List items={rdap.domainStatus} empty="-" />
         </div>
       ) : null}
 
@@ -126,11 +126,11 @@ export function DomainEnrichmentPanel({ enrichment }: { enrichment: DomainEnrich
           <strong style={{ fontSize: "var(--text-3)" }}>TLS (port 443)</strong>
           <div>
             <span className="text-light">Subject CN: </span>
-            {ssl.subjectCN ?? "—"}
+            {ssl.subjectCN ?? "-"}
           </div>
           <div>
             <span className="text-light">Issuer: </span>
-            {ssl.issuerO ?? "—"}
+            {ssl.issuerO ?? "-"}
             {ssl.issuerC ? ` (${ssl.issuerC})` : ""}
           </div>
           <div>
@@ -161,11 +161,11 @@ export function DomainEnrichmentPanel({ enrichment }: { enrichment: DomainEnrich
           ) : null}
           <div>
             <span className="text-light">Location: </span>
-            {[host.city, host.region, host.country].filter(Boolean).join(", ") || "—"}
+            {[host.city, host.region, host.country].filter(Boolean).join(", ") || "-"}
           </div>
           <div>
             <span className="text-light">Org / ISP: </span>
-            {host.org ?? host.isp ?? "—"}
+            {host.org ?? host.isp ?? "-"}
           </div>
         </div>
       ) : null}

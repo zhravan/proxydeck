@@ -4,15 +4,15 @@ import type { Domain } from "../../types/domain";
 import { useDomains } from "../hooks/useDomains";
 
 function formatDate(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
 function tlsValidTo(d: Domain): string {
   const v = d.enrichment?.ssl?.validTo;
-  if (!v) return "—";
+  if (!v) return "-";
   const dt = new Date(v);
   if (Number.isNaN(dt.getTime())) return v;
   return dt.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
@@ -48,6 +48,9 @@ export function DomainList() {
           >
             <Plus size={20} weight="duotone" aria-hidden />
             Add domain
+          </Link>
+          <Link to="/domains/servers" className="outline button">
+            Servers
           </Link>
         </div>
       </header>
@@ -85,7 +88,7 @@ export function DomainList() {
                     <td>
                       <Link to={`/domains/${d.id}`}>{d.hostname}</Link>
                     </td>
-                    <td>{d.registrarName ?? "—"}</td>
+                    <td>{d.registrarName ?? "-"}</td>
                     <td>{formatDate(d.expiresAt)}</td>
                     <td>{tlsValidTo(d)}</td>
                     <td>

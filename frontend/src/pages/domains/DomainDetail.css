@@ -1,5 +1,5 @@
 /**
- * Domain detail — minimal surfaces; theme tokens only (no “intel dashboard” chrome).
+ * Domain detail - minimal surfaces; theme tokens only (no “intel dashboard” chrome).
  */
 
 .pd-domain-detail {
@@ -386,7 +386,7 @@
   border: 1px solid color-mix(in srgb, var(--success) 22%, var(--pd-dd-border));
 }
 
-/* DNS tabs — underline, not pill gradient */
+/* DNS tabs - underline, not pill gradient */
 .pd-domain-detail__dns-seg {
   display: inline-flex;
   flex-wrap: wrap;

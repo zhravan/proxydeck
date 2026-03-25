@@ -21,7 +21,7 @@ export async function runMigrationsOrExit(): Promise<void> {
     console.log("[db] migrations applied (or already up to date)");
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("[db] FATAL: migration failed — server will not start:", msg);
+    console.error("[db] FATAL: migration failed - server will not start:", msg);
     process.exit(1);
   }
 }

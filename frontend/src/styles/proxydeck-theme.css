@@ -121,7 +121,7 @@ h6 {
   }
 }
 
-/* Tailwind-style elevated cards: Oat `.card` + tokens. Never pair `unstyled` on links — Oat zeros anchor padding. */
+/* Tailwind-style elevated cards: Oat `.card` + tokens. Never pair `unstyled` on links - Oat zeros anchor padding. */
 a.card.pd-action-card {
   text-decoration: none;
   color: inherit;
