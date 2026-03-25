@@ -2,8 +2,29 @@
 
 <p align="center">
   <img src="frontend/public/logo.svg" alt="Proxydeck" width="150" />
-  <p align="center">Web dashboard for domain portfolio & Proxy (Caddy/Traefik) </p>
+  <p align="center">Web dashboard for your domain portfolio, server inventory, and reverse proxy (Caddy / Traefik)</p>
 </p>
+
+### UI look & feel
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="assets/1.png" alt="Domain portfolio" width="100%" />
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/2.png" alt="Proxy sites" width="100%" />
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/3.png" alt="Server inventory" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><small>Domain portfolio</small></td>
+    <td align="center"><small>Proxy sites</small></td>
+    <td align="center"><small>Server inventory</small></td>
+  </tr>
+</table>
 
 ### Acknowledgments
 
