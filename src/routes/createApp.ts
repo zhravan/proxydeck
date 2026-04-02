@@ -1,10 +1,11 @@
 import { Elysia } from "elysia";
-import { auth } from "../auth";
+import { getAuth } from "../auth/authSingleton";
 import { apiAuthGuard } from "../middleware/apiAuthGuard";
 import { requestLogPlugin } from "../middleware/requestLog";
 import { domainRoutes } from "../controllers/domain.controller";
 import { configApiRoutes } from "../controllers/configApi.controller";
 import { infrastructureServerRoutes } from "../controllers/infrastructureServer.controller";
+import { appSettingsRoutes } from "../controllers/appSettings.controller";
 import { systemRoutes } from "../controllers/system.controller";
 import { openapiDocsPlugin } from "../plugins/openapiDocs";
 import { createSpaStaticHandler } from "../static/spaStatic";
@@ -15,7 +16,7 @@ import { createSpaStaticHandler } from "../static/spaStatic";
 export function createApp(frontendDistDir: string) {
   const serveStatic = createSpaStaticHandler(frontendDistDir);
 
-  const forwardAuth = (request: Request) => auth.handler(request);
+  const forwardAuth = (request: Request) => getAuth().handler(request);
 
   return (
     new Elysia()
@@ -24,6 +25,7 @@ export function createApp(frontendDistDir: string) {
       .use(domainRoutes)
       .use(infrastructureServerRoutes)
       .use(configApiRoutes)
+      .use(appSettingsRoutes)
       .use(systemRoutes)
       .use(openapiDocsPlugin())
       // Elysia matches `.get("/*")` before `.all("/api/auth/*")` for GET requests, which

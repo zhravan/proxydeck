@@ -1,5 +1,6 @@
 import {
   boolean,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -91,6 +92,24 @@ export const configHistory = pgTable("config_history", {
   payload: jsonb("payload").notNull(),
   provider: text("provider").notNull(),
   comment: text("comment"),
+});
+
+/** Singleton row (`id` = global) for outbound email / auth-related toggles. */
+export const appSettings = pgTable("app_settings", {
+  id: text("id").primaryKey(),
+  forgotPasswordEnabled: boolean("forgotPasswordEnabled").notNull().default(false),
+  emailVerificationEnabled: boolean("emailVerificationEnabled").notNull().default(false),
+  requireVerifiedSignIn: boolean("requireVerifiedSignIn").notNull().default(false),
+  smtpHost: text("smtpHost").notNull().default(""),
+  smtpPort: integer("smtpPort").notNull().default(587),
+  smtpSecure: boolean("smtpSecure").notNull().default(false),
+  smtpUser: text("smtpUser").notNull().default(""),
+  smtpFrom: text("smtpFrom").notNull().default(""),
+  /** AES-256-GCM ciphertext (hex iv + tag + payload), null if no password stored. */
+  smtpPassEncrypted: text("smtpPassEncrypted"),
+  updatedAt: timestamp("updatedAt", { mode: "date", precision: 3 })
+    .notNull()
+    .defaultNow(),
 });
 
 /** User-scoped domain portfolio (manual fields; automated checks come in a later phase). */

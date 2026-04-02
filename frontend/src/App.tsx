@@ -6,6 +6,7 @@ import { Sites } from "./pages/Sites";
 import { Config } from "./pages/Config";
 import { Certificates } from "./pages/Certificates";
 import { Logs } from "./pages/Logs";
+import { Settings } from "./pages/Settings";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
 import { useSession } from "./pages/hooks/useSession";
@@ -39,6 +40,7 @@ export function App() {
           <Route path="proxy/config" element={<Config />} />
           <Route path="proxy/certificates" element={<Certificates />} />
           <Route path="proxy/logs" element={<Logs />} />
+          <Route path="settings" element={<Settings />} />
           <Route path="sites" element={<Navigate to="/proxy/sites" replace />} />
           <Route path="config" element={<Navigate to="/proxy/config" replace />} />
           <Route path="certificates" element={<Navigate to="/proxy/certificates" replace />} />

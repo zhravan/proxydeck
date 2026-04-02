@@ -1,1 +1,2 @@
-export { auth } from "./config";
+export { getAuth } from "./authSingleton";
+export { initAuth } from "./initAuth";

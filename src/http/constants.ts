@@ -4,5 +4,6 @@ export const PUBLIC_API_PATHS = [
   "/api/docs",
   "/api/health",
   "/api/allow-signup",
+  "/api/auth-capabilities",
   "/api/proxy/status",
 ] as const;

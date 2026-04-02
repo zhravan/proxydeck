@@ -81,6 +81,11 @@ export function Layout() {
                 </ul>
               </details>
             </li>
+            <li>
+              <NavLink to="/settings" end>
+                Settings
+              </NavLink>
+            </li>
           </ul>
         </nav>
 

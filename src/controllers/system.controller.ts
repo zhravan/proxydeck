@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { appVersion } from "../appVersion";
 import { jsonResponse } from "../http/json";
 import { allowSignup } from "../auth/allow-signup";
+import { getEmailCapabilities } from "../services/appSettings.service";
 import { getProxyStatusSafe } from "../services/proxyStatus.service";
 import { readProxyLogTail } from "../services/logs.service";
 
@@ -21,6 +22,14 @@ export const systemRoutes = new Elysia()
       ...systemOpenapi,
       summary: "Signup allowed?",
       description: "Whether new account registration is permitted.",
+    },
+  })
+  .get("/api/auth-capabilities", async () => jsonResponse({ email: await getEmailCapabilities() }), {
+    detail: {
+      ...systemOpenapi,
+      summary: "Auth-related feature flags",
+      description:
+        "Public snapshot of which email-backed auth features are active (no secrets). Use for UI (e.g. show forgot-password link).",
     },
   })
   .get("/api/proxy/status", async () => jsonResponse(await getProxyStatusSafe()), {

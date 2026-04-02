@@ -15,6 +15,13 @@
       "when": 1774437795200,
       "tag": "0001_strange_jasper_sitwell",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775055276544,
+      "tag": "0002_outstanding_bishop",
+      "breakpoints": true
     }
   ]
 }

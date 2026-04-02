@@ -25,6 +25,7 @@ async function getSessionFromDb(cookieValue: string): Promise<{ user: unknown } 
       id: user.id,
       name: user.name,
       email: user.email,
+      emailVerified: user.emailVerified,
       username: user.username,
     })
     .from(session)
@@ -43,6 +44,7 @@ async function getSessionFromDb(cookieValue: string): Promise<{ user: unknown } 
       id: row.id,
       name: row.name,
       email: row.email,
+      emailVerified: row.emailVerified,
       username: row.username,
     },
   };
