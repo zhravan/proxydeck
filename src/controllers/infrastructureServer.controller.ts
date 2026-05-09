@@ -8,6 +8,10 @@ import {
   listInfrastructureServersForUser,
   updateInfrastructureServerForUserRequest,
 } from "../services/infrastructureServer.service";
+import {
+  exportInfrastructureServersResponse,
+  importInfrastructureServersPortfolio,
+} from "../services/infrastructureServerPortfolio.service";
 
 const openapi = {
   tags: ["infrastructure"],
@@ -15,6 +19,41 @@ const openapi = {
 
 export const infrastructureServerRoutes = new Elysia().group("/api/servers", (app) =>
   app
+    .get(
+      "/export",
+      async ({ request }) => {
+        const url = new URL(request.url);
+        const format = url.searchParams.get("format");
+        const res = await exportInfrastructureServersResponse(await getUserIdFromRequest(request), format);
+        return res instanceof Response ? res : toResponse(res);
+      },
+      {
+        detail: {
+          ...openapi,
+          summary: "Export servers (JSON or CSV)",
+          description: "Download server inventory backup. Use ?format=json or ?format=csv.",
+        },
+      }
+    )
+    .post(
+      "/import",
+      async ({ request }) =>
+        toResponse(
+          await importInfrastructureServersPortfolio(
+            await getUserIdFromRequest(request),
+            await readJsonBody(request)
+          )
+        ),
+      {
+        parse: "none",
+        detail: {
+          ...openapi,
+          summary: "Import servers (JSON or CSV)",
+          description:
+            "Body: { format, dryRun?, onDuplicateId?, servers? | csv }. Validates rows; linkedHostnames resolves to portfolio domains.",
+        },
+      }
+    )
     .get(
       "/",
       async ({ request }) =>

@@ -9,6 +9,7 @@ import {
   lookupDomainForUser,
   updateDomainForUserRequest,
 } from "../services/domain.service";
+import { exportDomainsPortfolioResponse, importDomainsPortfolio } from "../services/domainPortfolio.service";
 
 const domainOpenapi = {
   tags: ["domains"],
@@ -16,6 +17,38 @@ const domainOpenapi = {
 
 export const domainRoutes = new Elysia().group("/api/domains", (app) =>
   app
+    .get(
+      "/export",
+      async ({ request }) => {
+        const url = new URL(request.url);
+        const format = url.searchParams.get("format");
+        const res = await exportDomainsPortfolioResponse(await getUserIdFromRequest(request), format);
+        return res instanceof Response ? res : toResponse(res);
+      },
+      {
+        detail: {
+          ...domainOpenapi,
+          summary: "Export domains (JSON or CSV)",
+          description: "Download portfolio backup. Use ?format=json or ?format=csv.",
+        },
+      }
+    )
+    .post(
+      "/import",
+      async ({ request }) =>
+        toResponse(
+          await importDomainsPortfolio(await getUserIdFromRequest(request), await readJsonBody(request))
+        ),
+      {
+        parse: "none",
+        detail: {
+          ...domainOpenapi,
+          summary: "Import domains (JSON or CSV)",
+          description:
+            "Body: { format, dryRun?, onDuplicateHostname?, domains? | csv }. Validates rows; optional dry run.",
+        },
+      }
+    )
     .get(
       "/",
       async ({ request }) =>
