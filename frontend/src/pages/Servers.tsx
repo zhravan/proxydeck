@@ -1,9 +1,14 @@
 import { Link } from "react-router-dom";
-import { Plus, Trash } from "@phosphor-icons/react";
+import { FileArrowDown, Plus, Trash } from "@phosphor-icons/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ConfirmDialog, type ConfirmDialogHandle } from "../components/ConfirmDialog";
 import { OatFormModal, type OatFormModalHandle } from "../components/OatFormModal";
 import type { InfrastructureServer } from "../types/infrastructureServer";
+import {
+  downloadPortfolioExport,
+  postServersImport,
+  type PortfolioImportSummary,
+} from "../lib/portfolioBackup";
 import { useDomains } from "./hooks/useDomains";
 import { useServers } from "./hooks/useServers";
 
@@ -46,8 +51,17 @@ function parseTagsInput(raw: string): string[] {
     .filter(Boolean);
 }
 
+function summarizeServerImport(s: PortfolioImportSummary): string {
+  const bits = [
+    s.dryRun ? "Dry run (no changes saved)." : "Done.",
+    `created ${s.created}, updated ${s.updated}, skipped ${s.skipped}.`,
+  ];
+  if (s.errors.length) bits.push(`${s.errors.length} row(s) had errors.`);
+  return bits.join(" ");
+}
+
 export function Servers() {
-  const { servers, loading, error, create, update, remove } = useServers();
+  const { servers, loading, error, create, update, remove, reload } = useServers();
   const { domains, loading: domainsLoading } = useDomains();
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -56,6 +70,12 @@ export function Servers() {
   const removeDialogRef = useRef<ConfirmDialogHandle>(null);
   const pendingRemoveId = useRef<string | null>(null);
   const serverModalRef = useRef<OatFormModalHandle>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importNote, setImportNote] = useState<string | null>(null);
+  const [importErrors, setImportErrors] = useState<{ row: number; message: string }[]>([]);
+  const [dupIdPolicy, setDupIdPolicy] = useState<"error" | "skip" | "update">("error");
+  const [dryRunImport, setDryRunImport] = useState(true);
 
   const domainById = useMemo(() => {
     const m = new Map<string, string>();
@@ -97,6 +117,78 @@ export function Servers() {
     if (!r.ok) setFormError(r.error);
     else if (editingId === id) resetForm();
   }, [remove, editingId, resetForm]);
+
+  const onExportJson = useCallback(async () => {
+    setImportNote(null);
+    const r = await downloadPortfolioExport("/api/servers/export?format=json");
+    if (!r.ok) setImportNote(r.error);
+  }, []);
+
+  const onExportCsv = useCallback(async () => {
+    setImportNote(null);
+    const r = await downloadPortfolioExport("/api/servers/export?format=csv");
+    if (!r.ok) setImportNote(r.error);
+  }, []);
+
+  const onImportFile = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      setImportBusy(true);
+      setImportNote(null);
+      setImportErrors([]);
+      try {
+        const text = await file.text();
+        const lower = file.name.toLowerCase();
+        let body: Record<string, unknown>;
+        if (lower.endsWith(".csv")) {
+          body = {
+            format: "csv",
+            csv: text,
+            dryRun: dryRunImport,
+            onDuplicateId: dupIdPolicy,
+          };
+        } else {
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(text) as unknown;
+          } catch {
+            setImportNote("Could not parse JSON.");
+            return;
+          }
+          const arr = Array.isArray(parsed)
+            ? parsed
+            : parsed &&
+                typeof parsed === "object" &&
+                Array.isArray((parsed as { servers?: unknown }).servers)
+              ? (parsed as { servers: unknown[] }).servers
+              : null;
+          if (!arr) {
+            setImportNote('JSON must be an array of servers or an object with a "servers" array.');
+            return;
+          }
+          body = {
+            format: "json",
+            servers: arr,
+            dryRun: dryRunImport,
+            onDuplicateId: dupIdPolicy,
+          };
+        }
+        const r = await postServersImport(body);
+        if (!r.ok) {
+          setImportNote(r.error);
+          return;
+        }
+        setImportErrors(r.summary.errors);
+        setImportNote(summarizeServerImport(r.summary));
+        if (!r.summary.dryRun && (r.summary.created > 0 || r.summary.updated > 0)) await reload();
+      } finally {
+        setImportBusy(false);
+      }
+    },
+    [dryRunImport, dupIdPolicy, reload]
+  );
 
   const toggleDomainLink = useCallback((domainId: string) => {
     setForm((f) => {
@@ -348,7 +440,7 @@ export function Servers() {
           Track Hetzner, Contabo, AWS EC2, and other hosts in one place. Link entries to portfolio domains for
           context. Store secrets in a password manager-never here.
         </p>
-        <div className="hstack gap-2 mt-4">
+        <div className="hstack gap-2 mt-4" style={{ flexWrap: "wrap", alignItems: "center" }}>
           <button
             type="button"
             className="button"
@@ -358,12 +450,88 @@ export function Servers() {
             <Plus size={20} weight="duotone" aria-hidden />
             Add server
           </button>
+          <button
+            type="button"
+            className="outline button"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            onClick={() => void onExportJson()}
+            title="Download JSON backup"
+          >
+            <FileArrowDown size={20} weight="duotone" aria-hidden />
+            Export JSON
+          </button>
+          <button
+            type="button"
+            className="outline button"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            onClick={() => void onExportCsv()}
+            title="Download CSV backup"
+          >
+            <FileArrowDown size={20} weight="duotone" aria-hidden />
+            Export CSV
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".json,.csv,application/json,text/csv"
+            style={{ display: "none" }}
+            aria-hidden
+            tabIndex={-1}
+            onChange={(ev) => void onImportFile(ev)}
+          />
+          <button
+            type="button"
+            className="outline button"
+            disabled={importBusy}
+            onClick={() => importInputRef.current?.click()}
+            title="Import from JSON or CSV (validated). Import domains first if you use linked hostnames."
+          >
+            {importBusy ? "Importing…" : "Import…"}
+          </button>
+          <label className="hstack gap-1 text-light" style={{ fontSize: "var(--text-7)", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={dryRunImport}
+              onChange={(e) => setDryRunImport(e.target.checked)}
+            />
+            Dry run
+          </label>
+          <label className="text-light" style={{ fontSize: "var(--text-7)", display: "flex", gap: "0.35rem", alignItems: "center" }}>
+            <span>If server id exists:</span>
+            <select
+              value={dupIdPolicy}
+              onChange={(e) => setDupIdPolicy(e.target.value as typeof dupIdPolicy)}
+              aria-label="Duplicate server id policy"
+            >
+              <option value="error">error</option>
+              <option value="skip">skip row</option>
+              <option value="update">update row</option>
+            </select>
+          </label>
         </div>
       </header>
 
       {error && (
         <div className="card mb-4" role="alert" data-variant="danger">
           {error}
+        </div>
+      )}
+
+      {(importNote || importErrors.length > 0) && (
+        <div className="card mb-4" role="status">
+          {importNote ? <p style={{ marginBlockEnd: importErrors.length ? "0.75rem" : 0 }}>{importNote}</p> : null}
+          {importErrors.length > 0 ? (
+            <ul style={{ margin: 0, paddingInlineStart: "1.25rem", fontSize: "var(--text-7)" }}>
+              {importErrors.slice(0, 20).map((err) => (
+                <li key={`${err.row}-${err.message}`}>
+                  Row {err.row}: {err.message}
+                </li>
+              ))}
+              {importErrors.length > 20 ? (
+                <li className="text-light">…and {importErrors.length - 20} more</li>
+              ) : null}
+            </ul>
+          ) : null}
         </div>
       )}
 
