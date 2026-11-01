@@ -6,6 +6,7 @@ import {
   text,
   timestamp,
   unique,
+  index,
 } from "drizzle-orm/pg-core";
 import type { DomainEnrichment } from "../domains/enrichment/types";
 
@@ -176,7 +177,7 @@ export const domainCheckRuns = pgTable("domain_check_runs", {
   checkedAt: timestamp("checkedAt", { mode: "date", precision: 3 }).notNull().defaultNow(),
   result: jsonb("result").$type<DomainEnrichment>().notNull(),
   error: text("error"),
-});
+}, (t) => [index("domain_check_runs_domainId_checkedAt_idx").on(t.domainId, t.checkedAt)]);
 
 export const authSchema = {
   user,
