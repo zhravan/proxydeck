@@ -21,6 +21,18 @@ export async function findDomainByIdForUser(
   return rows[0];
 }
 
+export async function findDomainByHostnameForUser(
+  hostname: string,
+  userId: string
+): Promise<DomainRow | undefined> {
+  const rows = await db
+    .select()
+    .from(domains)
+    .where(and(eq(domains.userId, userId), eq(domains.hostname, hostname)))
+    .limit(1);
+  return rows[0];
+}
+
 export async function insertDomain(values: DomainInsert): Promise<DomainRow | undefined> {
   const [row] = await db.insert(domains).values(values).returning();
   return row;
