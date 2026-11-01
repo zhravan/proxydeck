@@ -6,6 +6,7 @@ const MAX_DOMAIN_REQUESTS = 1;
 const lookupHits = new Map<string, number[]>();
 const checkHits = new Map<string, number[]>();
 const domainHits = new Map<string, number[]>();
+const inFlightChecks = new Set<string>();
 
 function consume(map: Map<string, number[]>, key: string, max: number, windowMs: number):
   { ok: true } | { ok: false; retryAfterSec: number } {
@@ -30,4 +31,12 @@ export function rateLimitDomainCheck(userId: string, domainId: string) {
   const user = consume(checkHits, userId, MAX_REQUESTS, WINDOW_MS);
   if (!user.ok) return user;
   return consume(domainHits, `${userId}:${domainId}`, MAX_DOMAIN_REQUESTS, DOMAIN_WINDOW_MS);
+}
+
+/** Process-local overlap guard; prevents duplicate concurrent work for one domain. */
+export function acquireDomainCheck(userId: string, domainId: string): (() => void) | null {
+  const key = `${userId}:${domainId}`;
+  if (inFlightChecks.has(key)) return null;
+  inFlightChecks.add(key);
+  return () => inFlightChecks.delete(key);
 }
