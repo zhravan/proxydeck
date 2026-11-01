@@ -27,9 +27,11 @@ describe("domain check rate limits", () => {
     const user = crypto.randomUUID();
     const domain = crypto.randomUUID();
     const release = acquireDomainCheck(user, domain);
-    expect(release).toBeFunction();
+    expect(typeof release).toBe("function");
     expect(acquireDomainCheck(user, domain)).toBeNull();
     release?.();
-    expect(acquireDomainCheck(user, domain)).toBeFunction();
+    const reacquired = acquireDomainCheck(user, domain);
+    expect(typeof reacquired).toBe("function");
+    reacquired?.();
   });
 });
