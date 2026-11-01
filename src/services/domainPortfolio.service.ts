@@ -80,14 +80,14 @@ function rowToExportRecord(row: unknown, index: number):
     return { ok: false, error: `Row ${rowNum}: registrarName must be a string or null` };
   }
   const regErr = validateRegistrarName(registrarName ?? null);
-  if (regErr) return { ok: false, error: `Row ${rowNum}: ${regErr}`);
+  if (regErr) return { ok: false, error: `Row ${rowNum}: ${regErr}` };
 
   const notesRaw = o.notes;
   if (notesRaw !== undefined && notesRaw !== null && typeof notesRaw !== "string") {
     return { ok: false, error: `Row ${rowNum}: notes must be a string or null` };
   }
   const notesErr = validateNotes(typeof notesRaw === "string" ? notesRaw : null);
-  if (notesErr) return { ok: false, error: `Row ${rowNum}: ${notesErr}`);
+  if (notesErr) return { ok: false, error: `Row ${rowNum}: ${notesErr}` };
 
   const expiresParsed = parseOptionalExpiresAt(o.expiresAt);
   if (!expiresParsed.ok) return { ok: false, error: `Row ${rowNum}: ${expiresParsed.error}` };
