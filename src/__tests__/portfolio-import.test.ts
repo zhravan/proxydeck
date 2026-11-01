@@ -70,17 +70,34 @@ describe("domain portfolio imports", () => {
   test("rejects duplicate IDs and normalized hostnames in JSON payloads", async () => {
     const duplicateId = await importDomainsPortfolio("user-1", {
       format: "json",
-      domains: [domain("one.example"), domain("two.example")],
+      domains: [domain("one.example", validDomainId), domain("two.example", validDomainId)],
     });
-    // IDs in imported records are also required to be unique within one payload.
-    expect(duplicateId.status).toBe(400);
+    expect(duplicateId.status).toBe(200);
+    expect((duplicateId.body as any).created).toBe(1);
+    expect((duplicateId.body as any).errors).toHaveLength(1);
 
+    resetMocks();
     const duplicateHost = await importDomainsPortfolio("user-1", {
       format: "json",
       domains: [domain("Example.com", validDomainId), domain("example.com.", secondServerId)],
     });
     expect(duplicateHost.status).toBe(200);
+    expect((duplicateHost.body as any).created).toBe(1);
     expect((duplicateHost.body as any).errors).toHaveLength(1);
+  });
+
+  test("rejects duplicate CSV records by ID and normalized hostname", async () => {
+    const csv = [
+      "id,hostname",
+      `${validDomainId},example.com`,
+      `${validDomainId},other.example`,
+      `${secondServerId},EXAMPLE.COM.`,
+    ].join("\\n");
+    const result = await importDomainsPortfolio("user-1", { format: "csv", csv });
+    expect(result.status).toBe(200);
+    expect((result.body as any).created).toBe(1);
+    expect((result.body as any).errors).toHaveLength(2);
+    expect(repository.insertDomain).toHaveBeenCalledTimes(1);
   });
 
   test("rejects duplicate CSV records using normalized hostname", async () => {
