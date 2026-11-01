@@ -13,6 +13,8 @@ const HISTORY_LIMIT = 20;
 function unauthorized(): ApiResult { return { status: 401, body: { error: "Unauthorized" } }; }
 function notFound(): ApiResult { return { status: 404, body: { error: "Not found" } }; }
 
+function checkFailed(): ApiResult { return { status: 503, body: { error: "Domain check could not be completed" } }; }
+
 export async function refreshDomainCheckForUser(userId: string | null, domainId: string): Promise<ApiResult> {
   if (!userId) return unauthorized();
   if (!domainId) return notFound();
@@ -41,8 +43,9 @@ export async function refreshDomainCheckForUser(userId: string | null, domainId:
   let errorMessage: string | null = null;
   try {
     result = enrichmentToStorable(await enrichDomain(domain.hostname));
-  } catch (error) {
-    errorMessage = error instanceof Error ? error.message : "Domain check failed";
+  } catch {
+    // Record only sanitized failure information; raw dependency errors may contain URLs or details.
+    errorMessage = "Domain check failed";
     result = { fetchedAt: checkedAt.toISOString(), errors: [errorMessage] };
   }
 
@@ -68,8 +71,8 @@ export async function refreshDomainCheckForUser(userId: string | null, domainId:
     return { status: 200, body: { run: {
       id: run.id, checkedAt: run.checkedAt.toISOString(), result: run.result, error: run.error,
     } } };
-  } catch (error) {
-    return { status: 500, body: { error: error instanceof Error ? error.message : "Database error" } };
+  } catch {
+    return { status: 500, body: { error: "Could not persist domain check snapshot" } };
   } finally {
     releaseCheck();
   }
