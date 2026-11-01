@@ -10,6 +10,7 @@ import {
   updateDomainForUserRequest,
 } from "../services/domain.service";
 import { exportDomainsPortfolioResponse, importDomainsPortfolio } from "../services/domainPortfolio.service";
+import { listDomainCheckRunsForUser, refreshDomainCheckForUser } from "../services/domainCheck.service";
 
 const domainOpenapi = {
   tags: ["domains"],
@@ -88,6 +89,32 @@ export const domainRoutes = new Elysia().group("/api/domains", (app) =>
           ...domainOpenapi,
           summary: "Create domain",
           description: "Add a domain; optional public enrichment unless `skipPublicLookup` is true.",
+        },
+      }
+    )
+    .post(
+      "/:id/checks",
+      async ({ request, params }) =>
+        toResponse(await refreshDomainCheckForUser(await getUserIdFromRequest(request), params.id)),
+      {
+        detail: {
+          ...domainOpenapi,
+          summary: "Refresh domain checks",
+          description: "Run DNS, TLS, registration and host checks; append a snapshot to history. Limited to one refresh per domain per minute.",
+        },
+      }
+    )
+    .get(
+      "/:id/checks",
+      async ({ request, params }) => {
+        const limit = new URL(request.url).searchParams.get("limit");
+        return toResponse(await listDomainCheckRunsForUser(await getUserIdFromRequest(request), params.id, limit));
+      },
+      {
+        detail: {
+          ...domainOpenapi,
+          summary: "List domain check history",
+          description: "Returns recent append-only check snapshots (default 20, maximum 100).",
         },
       }
     )
