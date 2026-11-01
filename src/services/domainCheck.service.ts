@@ -1,9 +1,12 @@
 import type { ApiResult } from "../types/api";
 import { enrichDomain } from "../domains/enrichment/service";
 import { enrichmentToStorable } from "../models/domain.model";
-import { findDomainByIdForUser, updateDomainForUser } from "../repositories/domain.repository";
-import { findDomainCheckRunsForUser, insertDomainCheckRun } from "../repositories/domainCheckRun.repository";
+import { findDomainByIdForUser } from "../repositories/domain.repository";
+import { findDomainCheckRunsForUser } from "../repositories/domainCheckRun.repository";
 import { acquireDomainCheck, rateLimitDomainCheck } from "../domains/enrichment/ratelimit";
+import { and, eq } from "drizzle-orm";
+import { db } from "../db/client";
+import { domainCheckRuns, domains } from "../db/schema";
 
 const HISTORY_LIMIT = 20;
 
@@ -45,9 +48,6 @@ export async function refreshDomainCheckForUser(userId: string | null, domainId:
 
   try {
     // The append-only history row and latest snapshot update commit or roll back together.
-    const { db } = await import("../db/client");
-    const { domains, domainCheckRuns } = await import("../db/schema");
-    const { and, eq } = await import("drizzle-orm");
     const suggested = result.suggested;
     const suggestedExpiry = suggested?.expiresAt ? new Date(suggested.expiresAt) : null;
     const expiry = domain.expiresAt ?? (suggestedExpiry && !Number.isNaN(suggestedExpiry.getTime()) ? suggestedExpiry : null);
