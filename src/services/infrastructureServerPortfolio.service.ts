@@ -77,14 +77,14 @@ function uuidOk(id: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 }
 
+type DomainLookup = { allowed: Set<string>; byHost: Map<string, string> };
+
 async function resolveLinkedDomainIds(
-  userId: string,
+  lookup: DomainLookup,
   linkedDomainIds: unknown,
   linkedHostnames: unknown
 ): Promise<{ ok: true; value: string[] } | { ok: false; error: string }> {
-  const domains = await findDomainsByUserId(userId);
-  const allowed = new Set(domains.map((d) => d.id));
-  const byHost = new Map(domains.map((d) => [normalizeHostname(d.hostname), d.id]));
+  const { allowed, byHost } = lookup;
 
   const ids: string[] = [];
   if (linkedDomainIds !== undefined && linkedDomainIds !== null) {
@@ -144,7 +144,7 @@ type ServerImportRecord = {
 };
 
 async function rowToServerRecord(
-  userId: string,
+  lookup: DomainLookup,
   row: unknown,
   index: number
 ): Promise<{ ok: true; value: ServerImportRecord } | { ok: false; error: string }> {
@@ -155,8 +155,12 @@ async function rowToServerRecord(
   const o = row as Record<string, unknown>;
 
   const idRaw = o.id;
-  const id =
-    typeof idRaw === "string" && uuidOk(idRaw.trim()) ? idRaw.trim() : crypto.randomUUID();
+  if (idRaw !== undefined && idRaw !== null && idRaw !== "") {
+    if (typeof idRaw !== "string" || !uuidOk(idRaw.trim())) {
+      return { ok: false, error: `Row ${rowNum}: id must be a valid UUID` };
+    }
+  }
+  const id = typeof idRaw === "string" && idRaw.trim() !== "" ? idRaw.trim() : crypto.randomUUID();
 
   const providerRaw = o.provider;
   if (typeof providerRaw !== "string" || providerRaw.trim() === "") {
@@ -209,7 +213,7 @@ async function rowToServerRecord(
   const tagsParsed = parseTags(o.tags);
   if (!tagsParsed.ok) return { ok: false, error: `Row ${rowNum}: ${tagsParsed.error}` };
 
-  const linkedParsed = await resolveLinkedDomainIds(userId, o.linkedDomainIds, o.linkedHostnames);
+  const linkedParsed = await resolveLinkedDomainIds(lookup, o.linkedDomainIds, o.linkedHostnames);
   if (!linkedParsed.ok) return { ok: false, error: `Row ${rowNum}: ${linkedParsed.error}` };
 
   const now = new Date().toISOString();
@@ -374,6 +378,17 @@ export async function importInfrastructureServersPortfolio(userId: string | null
 
   let records: ServerImportRecord[] = [];
 
+  let domainLookup: DomainLookup;
+  try {
+    const domains = await findDomainsByUserId(userId);
+    domainLookup = {
+      allowed: new Set(domains.map((d) => d.id)),
+      byHost: new Map(domains.map((d) => [normalizeHostname(d.hostname), d.id])),
+    };
+  } catch (e) {
+    return dbFailureBody(e);
+  }
+
   if (format === "json") {
     if (!Array.isArray(b.servers)) {
       return { status: 400, body: { error: "servers must be an array" } };
@@ -382,7 +397,7 @@ export async function importInfrastructureServersPortfolio(userId: string | null
       return { status: 400, body: { error: `At most ${MAX_ROWS} servers per import` } };
     }
     for (let i = 0; i < b.servers.length; i++) {
-      const parsed = await rowToServerRecord(userId, b.servers[i], i);
+      const parsed = await rowToServerRecord(domainLookup, b.servers[i], i);
       if (!parsed.ok) return { status: 400, body: { error: parsed.error } };
       records.push(parsed.value);
     }
@@ -468,7 +483,7 @@ export async function importInfrastructureServersPortfolio(userId: string | null
         updatedAt: colUpdated >= 0 ? cell(colUpdated) || null : null,
       };
 
-      const parsed = await rowToServerRecord(userId, obj, r);
+      const parsed = await rowToServerRecord(domainLookup, obj, r);
       if (!parsed.ok) return { status: 400, body: { error: parsed.error } };
       records.push(parsed.value);
     }
@@ -480,10 +495,12 @@ export async function importInfrastructureServersPortfolio(userId: string | null
   let skipped = 0;
 
   try {
+    const seenIds = new Set<string>();
     for (let i = 0; i < records.length; i++) {
       const rec = records[i]!;
       const rowNum = i + 1;
-      const existing = await findInfrastructureServerByIdForUser(rec.id, userId);
+      const existing =
+        seenIds.has(rec.id) ? { id: rec.id } : await findInfrastructureServerByIdForUser(rec.id, userId);
 
       if (existing) {
         if (dupPolicy === "skip") {
@@ -495,6 +512,7 @@ export async function importInfrastructureServersPortfolio(userId: string | null
           continue;
         }
         if (dryRun) {
+          seenIds.add(rec.id);
           updated += 1;
           continue;
         }
@@ -516,11 +534,13 @@ export async function importInfrastructureServersPortfolio(userId: string | null
           errors.push({ row: rowNum, message: "Update failed" });
           continue;
         }
+        seenIds.add(rec.id);
         updated += 1;
         continue;
       }
 
       if (dryRun) {
+        seenIds.add(rec.id);
         created += 1;
         continue;
       }
@@ -548,6 +568,7 @@ export async function importInfrastructureServersPortfolio(userId: string | null
         errors.push({ row: rowNum, message: "Insert failed" });
         continue;
       }
+      seenIds.add(rec.id);
       created += 1;
     }
 

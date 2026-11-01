@@ -72,6 +72,7 @@ export function Servers() {
   const serverModalRef = useRef<OatFormModalHandle>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const [importBusy, setImportBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
   const [importNote, setImportNote] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<{ row: number; message: string }[]>([]);
   const [dupIdPolicy, setDupIdPolicy] = useState<"error" | "skip" | "update">("error");
@@ -118,17 +119,19 @@ export function Servers() {
     else if (editingId === id) resetForm();
   }, [remove, editingId, resetForm]);
 
-  const onExportJson = useCallback(async () => {
+  const onExport = useCallback(async (format: "json" | "csv") => {
     setImportNote(null);
-    const r = await downloadPortfolioExport("/api/servers/export?format=json");
-    if (!r.ok) setImportNote(r.error);
+    setExportBusy(true);
+    try {
+      const r = await downloadPortfolioExport(`/api/servers/export?format=${format}`);
+      if (!r.ok) setImportNote(r.error);
+    } finally {
+      setExportBusy(false);
+    }
   }, []);
 
-  const onExportCsv = useCallback(async () => {
-    setImportNote(null);
-    const r = await downloadPortfolioExport("/api/servers/export?format=csv");
-    if (!r.ok) setImportNote(r.error);
-  }, []);
+  const onExportJson = useCallback(() => onExport("json"), [onExport]);
+  const onExportCsv = useCallback(() => onExport("csv"), [onExport]);
 
   const onImportFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,6 +186,9 @@ export function Servers() {
         setImportErrors(r.summary.errors);
         setImportNote(summarizeServerImport(r.summary));
         if (!r.summary.dryRun && (r.summary.created > 0 || r.summary.updated > 0)) await reload();
+      } catch (err) {
+        setImportErrors([]);
+        setImportNote(err instanceof Error ? err.message : "Failed to read/import file");
       } finally {
         setImportBusy(false);
       }
@@ -454,21 +460,23 @@ export function Servers() {
             type="button"
             className="outline button"
             style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            disabled={exportBusy}
             onClick={() => void onExportJson()}
             title="Download JSON backup"
           >
             <FileArrowDown size={20} weight="duotone" aria-hidden />
-            Export JSON
+            {exportBusy ? "Exporting…" : "Export JSON"}
           </button>
           <button
             type="button"
             className="outline button"
             style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            disabled={exportBusy}
             onClick={() => void onExportCsv()}
             title="Download CSV backup"
           >
             <FileArrowDown size={20} weight="duotone" aria-hidden />
-            Export CSV
+            {exportBusy ? "Exporting…" : "Export CSV"}
           </button>
           <input
             ref={importInputRef}

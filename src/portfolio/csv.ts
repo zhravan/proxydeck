@@ -3,7 +3,7 @@
  */
 
 export function escapeCsvField(value: string): string {
-  if (/[",\r\n]/.test(value)) {
+  if (/[",\\r\\n]/.test(value)) {
     return `"${value.replace(/"/g, '""')}"`;
   }
   return value;
@@ -11,11 +11,12 @@ export function escapeCsvField(value: string): string {
 
 export function stringifyCsv(rows: string[][]): string {
   const lines = rows.map((row) => row.map((cell) => escapeCsvField(cell ?? "")).join(","));
-  return `${lines.join("\r\n")}\r\n`;
+  return `${lines.join("\\r\\n")}\\r\\n`;
 }
 
 /**
  * Parses CSV text into rows of raw string fields (no type coercion).
+ * Rejects malformed quoting rather than silently shifting imported columns.
  */
 export function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
@@ -23,7 +24,8 @@ export function parseCsv(text: string): string[][] {
   let field = "";
   let i = 0;
   let inQuotes = false;
-  const s = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  let afterQuote = false;
+  const s = text.replace(/\\r\\n/g, "\\n").replace(/\\r/g, "\\n");
 
   while (i < s.length) {
     const c = s[i]!;
@@ -35,6 +37,7 @@ export function parseCsv(text: string): string[][] {
           continue;
         }
         inQuotes = false;
+        afterQuote = true;
         i += 1;
         continue;
       }
@@ -42,18 +45,28 @@ export function parseCsv(text: string): string[][] {
       i += 1;
       continue;
     }
-    if (c === '"') {
+
+    if (afterQuote) {
+      if (c !== "," && c !== "\\n") {
+        throw new Error("Malformed CSV: unexpected character after closing quote");
+      }
+      afterQuote = false;
+    } else if (c === '"') {
+      if (field.length !== 0) {
+        throw new Error("Malformed CSV: quote inside an unquoted field");
+      }
       inQuotes = true;
       i += 1;
       continue;
     }
+
     if (c === ",") {
       row.push(field);
       field = "";
       i += 1;
       continue;
     }
-    if (c === "\n") {
+    if (c === "\\n") {
       row.push(field);
       field = "";
       rows.push(row);
@@ -64,6 +77,8 @@ export function parseCsv(text: string): string[][] {
     field += c;
     i += 1;
   }
+
+  if (inQuotes) throw new Error("Malformed CSV: unterminated quoted field");
   row.push(field);
   rows.push(row);
 

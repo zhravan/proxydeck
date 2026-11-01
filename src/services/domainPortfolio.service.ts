@@ -53,7 +53,12 @@ function rowToExportRecord(row: unknown, index: number):
   const o = row as Record<string, unknown>;
 
   const idRaw = o.id;
-  const id = typeof idRaw === "string" && uuidOk(idRaw.trim()) ? idRaw.trim() : "";
+  if (idRaw !== undefined && idRaw !== null && idRaw !== "") {
+    if (typeof idRaw !== "string" || !uuidOk(idRaw.trim())) {
+      return { ok: false, error: `Row ${rowNum}: id must be a valid UUID` };
+    }
+  }
+  const id = typeof idRaw === "string" ? idRaw.trim() : "";
 
   const hostnameRaw = o.hostname;
   if (typeof hostnameRaw !== "string") {
@@ -311,11 +316,20 @@ export async function importDomainsPortfolio(userId: string | null, body: unknow
   let skipped = 0;
 
   try {
+    // Track the state this import has planned/applied so dry runs and real imports
+    // agree when multiple rows target the same hostname or ID.
+    const plannedByHostname = new Map<string, string>();
+    const plannedById = new Map<string, string>();
+
     for (let i = 0; i < records.length; i++) {
       const rec = records[i]!;
       const rowNum = i + 1;
-      const byHostname = await findDomainByHostnameForUser(rec.hostname, userId);
-      let byId = rec.id ? await findDomainByIdForUser(rec.id, userId) : undefined;
+      const dbByHostname = await findDomainByHostnameForUser(rec.hostname, userId);
+      const dbById = rec.id ? await findDomainByIdForUser(rec.id, userId) : undefined;
+      const plannedHostnameId = plannedByHostname.get(rec.hostname);
+      const plannedIdId = rec.id ? plannedById.get(rec.id) : undefined;
+      const byHostname = dbByHostname ?? (plannedHostnameId ? { id: plannedHostnameId } : undefined);
+      const byId = dbById ?? (plannedIdId ? { id: plannedIdId } : undefined);
 
       if (byId && byHostname && byId.id !== byHostname.id) {
         errors.push({
@@ -337,6 +351,8 @@ export async function importDomainsPortfolio(userId: string | null, body: unknow
           continue;
         }
         if (dryRun) {
+          plannedByHostname.set(rec.hostname, existing.id);
+          plannedById.set(rec.id, existing.id);
           updated += 1;
           continue;
         }
@@ -354,11 +370,15 @@ export async function importDomainsPortfolio(userId: string | null, body: unknow
           errors.push({ row: rowNum, message: "Update failed" });
           continue;
         }
+        plannedByHostname.set(rec.hostname, existing.id);
+        plannedById.set(rec.id, existing.id);
         updated += 1;
         continue;
       }
 
       if (dryRun) {
+        plannedByHostname.set(rec.hostname, rec.id);
+        plannedById.set(rec.id, rec.id);
         created += 1;
         continue;
       }
@@ -381,6 +401,8 @@ export async function importDomainsPortfolio(userId: string | null, body: unknow
           errors.push({ row: rowNum, message: "Insert failed" });
           continue;
         }
+        plannedByHostname.set(rec.hostname, rec.id);
+        plannedById.set(rec.id, rec.id);
         created += 1;
       } catch (e) {
         if (isPgUniqueViolation(e)) {
