@@ -61,6 +61,39 @@ export async function deleteDomain(
   return { ok: true };
 }
 
+export type DomainCheckRun = {
+  id: string;
+  checkedAt: string;
+  result: DomainEnrichment;
+  error: string | null;
+};
+
+type CheckHistoryResponse = { runs: DomainCheckRun[] };
+type RefreshCheckResponse = { run: DomainCheckRun };
+
+export async function fetchDomainCheckHistory(id: string, limit = 10): Promise<
+  { ok: true; runs: DomainCheckRun[] } | { ok: false; error: string }
+> {
+  const res = await httpGet(`/api/domains/${encodeURIComponent(id)}/checks?limit=${limit}`);
+  if (!res.ok) return { ok: false, error: await readError(res) };
+  const data = (await res.json()) as CheckHistoryResponse;
+  return { ok: true, runs: Array.isArray(data.runs) ? data.runs : [] };
+}
+
+export async function runDomainCheck(id: string): Promise<
+  { ok: true; run: DomainCheckRun } | { ok: false; error: string }
+> {
+  try {
+    const res = await httpPost(`/api/domains/${encodeURIComponent(id)}/checks`, { json: {} });
+    if (!res.ok) return { ok: false, error: await readError(res) };
+    const data = (await res.json()) as RefreshCheckResponse;
+    if (!data.run) return { ok: false, error: "Invalid check response" };
+    return { ok: true, run: data.run };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Request failed" };
+  }
+}
+
 type LookupResponse = { enrichment: DomainEnrichment };
 
 export async function fetchDomainLookup(hostname: string): Promise<
