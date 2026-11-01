@@ -13,7 +13,6 @@ const HISTORY_LIMIT = 20;
 function unauthorized(): ApiResult { return { status: 401, body: { error: "Unauthorized" } }; }
 function notFound(): ApiResult { return { status: 404, body: { error: "Not found" } }; }
 
-function checkFailed(): ApiResult { return { status: 503, body: { error: "Domain check could not be completed" } }; }
 
 export async function refreshDomainCheckForUser(userId: string | null, domainId: string): Promise<ApiResult> {
   if (!userId) return unauthorized();
