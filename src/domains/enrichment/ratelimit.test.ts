@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { rateLimitDomainCheck, rateLimitDomainLookup } from "./ratelimit";
+import { acquireDomainCheck, rateLimitDomainCheck, rateLimitDomainLookup } from "./ratelimit";
 
 describe("domain check rate limits", () => {
   test("limits one explicit refresh per domain per minute", () => {
@@ -21,5 +21,15 @@ describe("domain check rate limits", () => {
     const user = crypto.randomUUID();
     expect(rateLimitDomainCheck(user, crypto.randomUUID()).ok).toBe(true);
     expect(rateLimitDomainLookup(user).ok).toBe(true);
+  });
+
+  test("prevents overlapping checks for the same domain and releases the lock", () => {
+    const user = crypto.randomUUID();
+    const domain = crypto.randomUUID();
+    const release = acquireDomainCheck(user, domain);
+    expect(release).toBeFunction();
+    expect(acquireDomainCheck(user, domain)).toBeNull();
+    release?.();
+    expect(acquireDomainCheck(user, domain)).toBeFunction();
   });
 });
