@@ -150,6 +150,23 @@ export function DomainDetail() {
 
   const historyEvents = useMemo(() => sortRdapEventsDesc(rdap?.events ?? []), [rdap?.events]);
 
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    setHistoryLoading(true);
+    void fetchDomainCheckHistory(id, 10).then((response) => {
+      if (cancelled) return;
+      setHistoryLoading(false);
+      if (!response.ok) {
+        setHistoryError(response.error);
+        return;
+      }
+      setHistoryError(null);
+      setCheckRuns(response.runs);
+    });
+    return () => { cancelled = true; };
+  }, [id]);
+
   const dataSourcesLine = useMemo(() => {
     const m = enrichment?.enrichmentMetadata;
     if (!m) return null;
@@ -163,6 +180,7 @@ export function DomainDetail() {
     () => snapshotChipLabel(domain?.enrichedAt, enrichment?.fetchedAt),
     [domain?.enrichedAt, enrichment?.fetchedAt]
   );
+
 
   async function loadCheckHistory() {
     if (!id) return;
@@ -239,9 +257,7 @@ export function DomainDetail() {
 
   const snapshotTime = domain.enrichedAt ?? enrichment?.fetchedAt;
 
-  useEffect(() => {
-    void loadCheckHistory();
-  }, [id]);
+
 
   return (
     <div className="pd-domain-detail">
