@@ -405,7 +405,12 @@ export async function importInfrastructureServersPortfolio(userId: string | null
     if (typeof b.csv !== "string") {
       return { status: 400, body: { error: "csv must be a string when format is csv" } };
     }
-    const table = parseCsv(b.csv.trim());
+    let table: string[][];
+    try {
+      table = parseCsv(b.csv.trim());
+    } catch (e) {
+      return { status: 400, body: { error: e instanceof Error ? e.message : "Malformed CSV" } };
+    }
     if (table.length < 2) {
       return { status: 400, body: { error: "CSV must include a header row and at least one data row" } };
     }

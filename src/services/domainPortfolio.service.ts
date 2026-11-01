@@ -253,7 +253,12 @@ export async function importDomainsPortfolio(userId: string | null, body: unknow
     if (typeof b.csv !== "string") {
       return { status: 400, body: { error: "csv must be a string when format is csv" } };
     }
-    const table = parseCsv(b.csv.trim());
+    let table: string[][];
+    try {
+      table = parseCsv(b.csv.trim());
+    } catch (e) {
+      return { status: 400, body: { error: e instanceof Error ? e.message : "Malformed CSV" } };
+    }
     if (table.length < 2) {
       return { status: 400, body: { error: "CSV must include a header row and at least one data row" } };
     }
@@ -316,8 +321,8 @@ export async function importDomainsPortfolio(userId: string | null, body: unknow
   let skipped = 0;
 
   try {
-    // Track the state this import has planned/applied so dry runs and real imports
-    // agree when multiple rows target the same hostname or ID.
+    // Track IDs and hostnames encountered in this batch so repeated records
+    // follow the same duplicate policy during dry-runs and actual imports.
     const plannedByHostname = new Map<string, string>();
     const plannedById = new Map<string, string>();
 
@@ -327,20 +332,16 @@ export async function importDomainsPortfolio(userId: string | null, body: unknow
       const dbByHostname = await findDomainByHostnameForUser(rec.hostname, userId);
       const dbById = rec.id ? await findDomainByIdForUser(rec.id, userId) : undefined;
       const plannedHostnameId = plannedByHostname.get(rec.hostname);
-      const plannedIdId = rec.id ? plannedById.get(rec.id) : undefined;
+      const plannedIdId = plannedById.get(rec.id);
       const byHostname = dbByHostname ?? (plannedHostnameId ? { id: plannedHostnameId } : undefined);
       const byId = dbById ?? (plannedIdId ? { id: plannedIdId } : undefined);
 
       if (byId && byHostname && byId.id !== byHostname.id) {
-        errors.push({
-          row: rowNum,
-          message: "Import id and hostname refer to different existing records",
-        });
+        errors.push({ row: rowNum, message: "Import id and hostname refer to different existing records" });
         continue;
       }
 
       const existing = byId ?? byHostname;
-
       if (existing) {
         if (dupPolicy === "skip") {
           skipped += 1;

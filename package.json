@@ -16,7 +16,8 @@
     "start": "bun src/index.ts",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
-    "version:major": "npm version major --no-git-tag-version"
+    "version:major": "npm version major --no-git-tag-version",
+    "test": "bun test"
   },
   "dependencies": {
     "@elysiajs/swagger": "^1.3.1",
