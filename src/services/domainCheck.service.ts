@@ -1,4 +1,5 @@
 import type { ApiResult } from "../types/api";
+import type { DomainEnrichment } from "../domains/enrichment/types";
 import { enrichDomain } from "../domains/enrichment/service";
 import { enrichmentToStorable } from "../models/domain.model";
 import { findDomainByIdForUser } from "../repositories/domain.repository";
@@ -38,7 +39,7 @@ export async function refreshDomainCheckForUser(userId: string | null, domainId:
   }
 
   const checkedAt = new Date();
-  let result;
+  let result: DomainEnrichment;
   let errorMessage: string | null = null;
   try {
     result = enrichmentToStorable(await enrichDomain(domain.hostname));
