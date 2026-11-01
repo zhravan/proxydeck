@@ -54,15 +54,15 @@ const server = (id = validServerId, name = "app") => ({ id, provider: "AWS", nam
 
 describe("portfolio CSV parser", () => {
   test("rejects unterminated quotes", () => {
-    expect(() => parseCsv('hostname,notes\\nexample.com,"unfinished')).toThrow(/unterminated/i);
+    expect(() => parseCsv('hostname,notes\nexample.com,"unfinished')).toThrow(/unterminated/i);
   });
 
   test("rejects quotes embedded in unquoted fields", () => {
-    expect(() => parseCsv('hostname,notes\\nexample.com,bad"quote')).toThrow(/quote inside/i);
+    expect(() => parseCsv('hostname,notes\nexample.com,bad"quote')).toThrow(/quote inside/i);
   });
 
   test("rejects characters after a closing quote", () => {
-    expect(() => parseCsv('hostname,notes\\nexample.com,"valid"x')).toThrow(/after closing quote/i);
+    expect(() => parseCsv('hostname,notes\nexample.com,"valid"x')).toThrow(/after closing quote/i);
   });
 });
 
@@ -92,7 +92,7 @@ describe("domain portfolio imports", () => {
       `${validDomainId},example.com`,
       `${validDomainId},other.example`,
       `${secondServerId},EXAMPLE.COM.`,
-    ].join("\\n");
+    ].join("\n");
     const result = await importDomainsPortfolio("user-1", { format: "csv", csv });
     expect(result.status).toBe(200);
     expect((result.body as any).created).toBe(1);
@@ -105,7 +105,7 @@ describe("domain portfolio imports", () => {
       "id,hostname",
       `${validDomainId},example.com`,
       `${secondServerId},EXAMPLE.COM.`,
-    ].join("\\n");
+    ].join("\n");
     const result = await importDomainsPortfolio("user-1", { format: "csv", csv });
     expect(result.status).toBe(200);
     expect((result.body as any).errors).toHaveLength(1);
@@ -115,7 +115,7 @@ describe("domain portfolio imports", () => {
   test("reports malformed CSV as a client error, not an unhandled exception", async () => {
     const result = await importDomainsPortfolio("user-1", {
       format: "csv",
-      csv: 'hostname,notes\\nexample.com,"unterminated',
+      csv: 'hostname,notes\nexample.com,"unterminated',
     });
     expect(result.status).toBe(400);
   });
