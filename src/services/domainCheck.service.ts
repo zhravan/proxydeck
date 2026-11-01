@@ -3,7 +3,7 @@ import { enrichDomain } from "../domains/enrichment/service";
 import { enrichmentToStorable } from "../models/domain.model";
 import { findDomainByIdForUser, updateDomainForUser } from "../repositories/domain.repository";
 import { findDomainCheckRunsForUser, insertDomainCheckRun } from "../repositories/domainCheckRun.repository";
-import { rateLimitDomainCheck } from "../domains/enrichment/ratelimit";
+import { acquireDomainCheck, rateLimitDomainCheck } from "../domains/enrichment/ratelimit";
 
 const HISTORY_LIMIT = 20;
 
@@ -22,8 +22,11 @@ export async function refreshDomainCheckForUser(userId: string | null, domainId:
   }
   if (!domain) return notFound();
 
+  const releaseCheck = acquireDomainCheck(userId, domainId);
+  if (!releaseCheck) return { status: 409, body: { error: "A check for this domain is already running." } };
   const limited = rateLimitDomainCheck(userId, domainId);
   if (!limited.ok) {
+    releaseCheck();
     return { status: 429, body: {
       error: "This domain was checked recently. Try again shortly.",
       retryAfter: limited.retryAfterSec,
@@ -63,6 +66,8 @@ export async function refreshDomainCheckForUser(userId: string | null, domainId:
     } } };
   } catch (error) {
     return { status: 500, body: { error: error instanceof Error ? error.message : "Database error" } };
+  } finally {
+    releaseCheck();
   }
 }
 
