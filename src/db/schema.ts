@@ -169,6 +169,15 @@ export const infrastructureServers = pgTable("infrastructure_servers", {
     .defaultNow(),
 });
 
+/** Append-only results for explicit domain checks; deleting a domain deletes its history. */
+export const domainCheckRuns = pgTable("domain_check_runs", {
+  id: text("id").primaryKey(),
+  domainId: text("domainId").notNull().references(() => domains.id, { onDelete: "cascade" }),
+  checkedAt: timestamp("checkedAt", { mode: "date", precision: 3 }).notNull().defaultNow(),
+  result: jsonb("result").$type<DomainEnrichment>().notNull(),
+  error: text("error"),
+});
+
 export const authSchema = {
   user,
   session,
