@@ -73,3 +73,15 @@ Set `BETTER_AUTH_SECRET` in `.env`. Either set `DATABASE_URL` (your Postgres; no
 ---
 
 </samp>
+
+## Domain checks and snapshots
+
+Domain detail pages support an on-demand public check. The refresh endpoint runs the existing DNS, TLS, registration and host enrichment pipeline and stores an append-only snapshot for troubleshooting.
+
+- `POST /api/domains/:id/checks` runs a refresh for a domain owned by the signed-in user.
+- `GET /api/domains/:id/checks?limit=20` returns recent snapshots. The limit defaults to 20 and is capped at 100.
+- Refreshes are session-authenticated, rate-limited to one check per domain per minute and 24 checks per user per minute (per application process).
+- Snapshots are retained in `domain_check_runs`; deleting a domain cascades to its snapshots. The latest snapshot is also reflected in the existing `domains.enrichment` field for compatibility.
+- Run `bun run db:migrate` before starting an upgraded deployment.
+
+The first version checks the domain’s DNS records, TLS certificate and existing registration/host enrichment. It does not run a separate HTTP status probe yet; scheduled portfolio-wide checks and webhook notifications are tracked separately.

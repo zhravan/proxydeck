@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowsClockwise,
@@ -16,7 +16,7 @@ import {
   Trash,
   Warning,
 } from "@phosphor-icons/react";
-import { deleteDomain, refreshDomainPublic, useDomain } from "../hooks/useDomains";
+import { deleteDomain, fetchDomainCheckHistory, runDomainCheck, type DomainCheckRun, useDomain } from "../hooks/useDomains";
 import {
   effectiveExpiry,
   effectiveRegistrar,
@@ -134,6 +134,9 @@ export function DomainDetail() {
   const [deleting, setDeleting] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [checkRuns, setCheckRuns] = useState<DomainCheckRun[]>([]);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const deleteDialogRef = useRef<ConfirmDialogHandle>(null);
 
   const enrichment = domain?.enrichment ?? null;
@@ -146,6 +149,23 @@ export function DomainDetail() {
   );
 
   const historyEvents = useMemo(() => sortRdapEventsDesc(rdap?.events ?? []), [rdap?.events]);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    setHistoryLoading(true);
+    void fetchDomainCheckHistory(id, 10).then((response) => {
+      if (cancelled) return;
+      setHistoryLoading(false);
+      if (!response.ok) {
+        setHistoryError(response.error);
+        return;
+      }
+      setHistoryError(null);
+      setCheckRuns(response.runs);
+    });
+    return () => { cancelled = true; };
+  }, [id]);
 
   const dataSourcesLine = useMemo(() => {
     const m = enrichment?.enrichmentMetadata;
@@ -161,17 +181,31 @@ export function DomainDetail() {
     [domain?.enrichedAt, enrichment?.fetchedAt]
   );
 
+
+  async function loadCheckHistory() {
+    if (!id) return;
+    setHistoryLoading(true);
+    const response = await fetchDomainCheckHistory(id, 10);
+    setHistoryLoading(false);
+    if (!response.ok) {
+      setHistoryError(response.error);
+      return;
+    }
+    setHistoryError(null);
+    setCheckRuns(response.runs);
+  }
+
   async function handleRefreshPublic() {
     if (!id) return;
     setRefreshError(null);
     setRefreshing(true);
-    const result = await refreshDomainPublic(id);
+    const result = await runDomainCheck(id);
     setRefreshing(false);
     if (!result.ok) {
       setRefreshError(result.error);
       return;
     }
-    await reload();
+    await Promise.all([reload(), loadCheckHistory()]);
   }
 
   async function runDelete() {
@@ -222,6 +256,8 @@ export function DomainDetail() {
   const visitUrl = `https://${domain.hostname.replace(/^https?:\/\//i, "")}`;
 
   const snapshotTime = domain.enrichedAt ?? enrichment?.fetchedAt;
+
+
 
   return (
     <div className="pd-domain-detail">
@@ -511,6 +547,39 @@ export function DomainDetail() {
             Portfolio updated {formatDateTimeShort(domain.updatedAt)} · Public snapshot{" "}
             {formatDateTimeShort(domain.enrichedAt ?? enrichment?.fetchedAt)}
           </footer>
+          <div className="pd-domain-detail__check-history" aria-label="Recent check runs">
+            <div className="pd-domain-detail__panel-head">
+              <h3>Recent checks</h3>
+              <button type="button" className="small pd-domain-detail__btn-ghost" onClick={() => void loadCheckHistory()} disabled={historyLoading}>
+                {historyLoading ? "Loading…" : "Reload history"}
+              </button>
+            </div>
+            {historyError ? <p role="alert" className="pd-domain-detail__muted">{historyError}</p> : null}
+            {!historyError && !checkRuns.length && !historyLoading ? (
+              <p className="pd-domain-detail__muted">No saved check runs yet. Choose “Refresh data” to create the first snapshot.</p>
+            ) : null}
+            {checkRuns.length ? (
+              <ol className="pd-domain-detail__timeline">
+                {checkRuns.map((run) => (
+                  <li key={run.id}>
+                    <span className="pd-domain-detail__timeline-dot" aria-hidden />
+                    <span className="pd-domain-detail__timeline-action">
+                      {run.error || run.result.errors?.length ? "Completed with warnings" : "Check completed"}
+                    </span>
+                    <time className="pd-domain-detail__timeline-time" dateTime={run.checkedAt}>
+                      {formatDateTimeShort(run.checkedAt)}
+                    </time>
+                    <details>
+                      <summary>View snapshot</summary>
+                      <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: "var(--text-8)" }}>
+                        {JSON.stringify(run.result, null, 2)}
+                      </pre>
+                    </details>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+          </div>
         </section>
       </div>
     </div>
