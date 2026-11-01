@@ -3,7 +3,8 @@ const MAX_REQUESTS = 24;
 const DOMAIN_WINDOW_MS = 60_000;
 const MAX_DOMAIN_REQUESTS = 1;
 
-const hits = new Map<string, number[]>();
+const lookupHits = new Map<string, number[]>();
+const checkHits = new Map<string, number[]>();
 const domainHits = new Map<string, number[]>();
 
 function consume(map: Map<string, number[]>, key: string, max: number, windowMs: number):
@@ -21,12 +22,12 @@ function consume(map: Map<string, number[]>, key: string, max: number, windowMs:
 }
 
 export function rateLimitDomainLookup(userId: string) {
-  return consume(hits, userId, MAX_REQUESTS, WINDOW_MS);
+  return consume(lookupHits, userId, MAX_REQUESTS, WINDOW_MS);
 }
 
-/** Keep explicit refreshes to one per domain per minute, in addition to the user-wide limit. */
+/** Limit explicit checks per user and per domain to keep outbound lookups bounded. */
 export function rateLimitDomainCheck(userId: string, domainId: string) {
-  const user = consume(hits, userId, MAX_REQUESTS, WINDOW_MS);
+  const user = consume(checkHits, userId, MAX_REQUESTS, WINDOW_MS);
   if (!user.ok) return user;
   return consume(domainHits, `${userId}:${domainId}`, MAX_DOMAIN_REQUESTS, DOMAIN_WINDOW_MS);
 }
