@@ -44,21 +44,25 @@ export async function refreshDomainCheckForUser(userId: string | null, domainId:
   }
 
   try {
-    const run = await insertDomainCheckRun({
-      id: crypto.randomUUID(), domainId, checkedAt, result, error: errorMessage,
-    });
-
-    // Keep the existing enrichment field as the latest snapshot for compatibility.
-    // Preserve manually supplied expiry/registrar values; only fill missing metadata.
+    // The append-only history row and latest snapshot update commit or roll back together.
+    const { db } = await import("../db/client");
+    const { domains, domainCheckRuns } = await import("../db/schema");
+    const { and, eq } = await import("drizzle-orm");
     const suggested = result.suggested;
     const suggestedExpiry = suggested?.expiresAt ? new Date(suggested.expiresAt) : null;
     const expiry = domain.expiresAt ?? (suggestedExpiry && !Number.isNaN(suggestedExpiry.getTime()) ? suggestedExpiry : null);
-    await updateDomainForUser(domainId, userId, {
-      enrichment: result,
-      enrichedAt: checkedAt,
-      expiresAt: expiry,
-      registrarName: domain.registrarName ?? suggested?.registrarName ?? null,
-      updatedAt: checkedAt,
+    const [run] = await db.transaction(async (tx) => {
+      const [inserted] = await tx.insert(domainCheckRuns).values({
+        id: crypto.randomUUID(), domainId, checkedAt, result, error: errorMessage,
+      }).returning();
+      await tx.update(domains).set({
+        enrichment: result,
+        enrichedAt: checkedAt,
+        expiresAt: expiry,
+        registrarName: domain.registrarName ?? suggested?.registrarName ?? null,
+        updatedAt: checkedAt,
+      }).where(and(eq(domains.id, domainId), eq(domains.userId, userId)));
+      return [inserted];
     });
 
     return { status: 200, body: { run: {
