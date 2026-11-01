@@ -5,17 +5,6 @@ import type { DomainEnrichment } from "../domains/enrichment/types";
 
 export type DomainCheckRun = typeof domainCheckRuns.$inferSelect;
 
-export async function insertDomainCheckRun(input: {
-  id: string;
-  domainId: string;
-  checkedAt: Date;
-  result: DomainEnrichment;
-  error?: string | null;
-}): Promise<DomainCheckRun> {
-  const [row] = await db.insert(domainCheckRuns).values(input).returning();
-  return row;
-}
-
 export async function findDomainCheckRunsForUser(domainId: string, userId: string, limit = 20) {
   const [owned] = await db.select({ id: domains.id }).from(domains)
     .where(and(eq(domains.id, domainId), eq(domains.userId, userId))).limit(1);
