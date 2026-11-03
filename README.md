@@ -53,6 +53,14 @@ Set `BETTER_AUTH_SECRET` in `.env`. Either set `DATABASE_URL` (your Postgres; no
 
 ---
 
+## Docker images
+
+Prebuilt multi-architecture images are published to `ghcr.io/zhravan/proxydeck` for `linux/amd64` and `linux/arm64`.
+
+See **[Docker image deployment](docs/docker.md)** for pull commands, a complete Docker Compose example with bundled PostgreSQL, version pinning, and CI/CD publishing behavior.
+
+---
+
 <details>
 <summary><b>Click to view .env variable definitions</b></summary>
 

@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["db"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: proxydeck
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: proxydeck
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proxydeck -d proxydeck"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+  app:
+    image: ghcr.io/zhravan/proxydeck:${PROXYDECK_VERSION:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      DATABASE_URL: ${DATABASE_URL:-postgres://proxydeck:${POSTGRES_PASSWORD}@postgres:5432/proxydeck}
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+volumes:
+  postgres_data: {}
