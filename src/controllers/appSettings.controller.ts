@@ -57,8 +57,7 @@ export const appSettingsRoutes = new Elysia().group("/api/settings", (app) =>
         const userId = await getUserIdFromRequest(request);
         if (!userId) return jsonResponse({ error: "Unauthorized" }, 401);
         const session = await getSession(request);
-        const role = (session?.user as { role?: string } | undefined)?.role;
-        if (role !== "admin") return jsonResponse({ error: "Only administrators can update application settings" }, 403);
+        if ((session?.user as { role?: string } | undefined)?.role !== "admin") return jsonResponse({ error: "Only administrators can update application settings" }, 403);
         const raw = await readJsonBody(request);
         if (raw === null) return jsonResponse({ error: "Expected application/json body" }, 400);
         try {

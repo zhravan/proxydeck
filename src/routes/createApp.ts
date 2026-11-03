@@ -10,20 +10,13 @@ import { userRoutes } from "../controllers/user.controller";
 import { systemRoutes } from "../controllers/system.controller";
 import { openapiDocsPlugin } from "../plugins/openapiDocs";
 import { createSpaStaticHandler } from "../static/spaStatic";
-export function createApp(frontendDistDir: string) {
-  const serveStatic = createSpaStaticHandler(frontendDistDir);
-  const forwardAuth = (request: Request) => getAuth().handler(request);
-  return new Elysia().use(requestLogPlugin()).onBeforeHandle(apiAuthGuard)
-    .use(domainRoutes).use(infrastructureServerRoutes).use(configApiRoutes)
-    .use(appSettingsRoutes).use(userRoutes).use(systemRoutes).use(openapiDocsPlugin())
-    .get("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
-    .post("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
-    .options("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
-    .get("/*",({request})=>{
-      const pathname=new URL(request.url).pathname;
-      if(pathname.startsWith("/api")) return;
-      const res=serveStatic(pathname); if(res) return res;
-      const indexRes=serveStatic("/index.html");
-      return indexRes ?? new Response("Not Found",{status:404});
-    });
+export function createApp(frontendDistDir:string){
+ const serveStatic=createSpaStaticHandler(frontendDistDir);
+ const forwardAuth=(request:Request)=>getAuth().handler(request);
+ return new Elysia().use(requestLogPlugin()).onBeforeHandle(apiAuthGuard)
+ .use(domainRoutes).use(infrastructureServerRoutes).use(configApiRoutes).use(appSettingsRoutes).use(userRoutes).use(systemRoutes).use(openapiDocsPlugin())
+ .get("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
+ .post("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
+ .options("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
+ .get("/*",({request})=>{const pathname=new URL(request.url).pathname;if(pathname.startsWith("/api"))return;const res=serveStatic(pathname);if(res)return res;const indexRes=serveStatic("/index.html");return indexRes??new Response("Not Found",{status:404})});
 }

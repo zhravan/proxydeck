@@ -21,11 +21,7 @@ export async function apiAuthGuard({ request }: { request: Request }): Promise<R
   if (permission === null) return;
   if (permission === "admin:only") return jsonError(403, "No authorization policy is defined for this API route.", "ROLE_POLICY_MISSING");
   const role = currentUser.role;
-  if (role !== "admin" && role !== "operator" && role !== "viewer") {
-    return jsonError(403, "User role is missing or invalid.", "INVALID_ROLE");
-  }
-  if (!hasPermission(role as UserRole, permission as Permission)) {
-    return jsonError(403, "Your role does not allow this action.", "FORBIDDEN");
-  }
+  if (role !== "admin" && role !== "operator" && role !== "viewer") return jsonError(403, "User role is missing or invalid.", "INVALID_ROLE");
+  if (!hasPermission(role as UserRole, permission as Permission)) return jsonError(403, "Your role does not allow this action.", "FORBIDDEN");
   return;
 }
