@@ -1,6 +1,6 @@
 export const USER_ROLES=["admin","operator","viewer"] as const;
 export type UserRole=(typeof USER_ROLES)[number];
-export type Permission="domains:read"|"domains:write"|"servers:read"|"servers:write"|"proxy:read"|"proxy:write"|"logs:read"|"settings:read"|"settings:write"|"users:read"|"users:write";
+export type Permission="admin:only"|"domains:read"|"domains:write"|"servers:read"|"servers:write"|"proxy:read"|"proxy:write"|"logs:read"|"settings:read"|"settings:write"|"users:read"|"users:write";
 const ROLE_PERMISSIONS:Record<UserRole,readonly Permission[]>={admin:["domains:read","domains:write","servers:read","servers:write","proxy:read","proxy:write","logs:read","settings:read","settings:write","users:read","users:write"],operator:["domains:read","domains:write","servers:read","servers:write","proxy:read","proxy:write","logs:read"],viewer:["domains:read","servers:read","proxy:read","logs:read","settings:read"]};
 export function isUserRole(v:unknown):v is UserRole{return typeof v==="string"&&(USER_ROLES as readonly string[]).includes(v)}
 export function hasPermission(role:UserRole,permission:Permission):boolean{return ROLE_PERMISSIONS[role].includes(permission)}
