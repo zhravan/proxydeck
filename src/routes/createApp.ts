@@ -6,43 +6,17 @@ import { domainRoutes } from "../controllers/domain.controller";
 import { configApiRoutes } from "../controllers/configApi.controller";
 import { infrastructureServerRoutes } from "../controllers/infrastructureServer.controller";
 import { appSettingsRoutes } from "../controllers/appSettings.controller";
+import { userRoutes } from "../controllers/user.controller";
 import { systemRoutes } from "../controllers/system.controller";
 import { openapiDocsPlugin } from "../plugins/openapiDocs";
 import { createSpaStaticHandler } from "../static/spaStatic";
-
-/**
- * Composes HTTP middleware, API route plugins, auth catch-all, and SPA static fallback.
- */
-export function createApp(frontendDistDir: string) {
-  const serveStatic = createSpaStaticHandler(frontendDistDir);
-
-  const forwardAuth = (request: Request) => getAuth().handler(request);
-
-  return (
-    new Elysia()
-      .use(requestLogPlugin())
-      .onBeforeHandle(apiAuthGuard)
-      .use(domainRoutes)
-      .use(infrastructureServerRoutes)
-      .use(configApiRoutes)
-      .use(appSettingsRoutes)
-      .use(systemRoutes)
-      .use(openapiDocsPlugin())
-      // Elysia matches `.get("/*")` before `.all("/api/auth/*")` for GET requests, which
-      // returned an empty body for get-session and broke the SPA session check. Register
-      // auth paths with explicit methods so they win over the SPA catch-all.
-      // `parse: "none"` keeps Elysia from consuming `request.json()` before Better Auth runs
-      // (avoids ERR_BODY_ALREADY_USED on sign-in/sign-up POSTs).
-      .get("/api/auth/*", ({ request }) => forwardAuth(request), { parse: "none" })
-      .post("/api/auth/*", ({ request }) => forwardAuth(request), { parse: "none" })
-      .options("/api/auth/*", ({ request }) => forwardAuth(request), { parse: "none" })
-      .get("/*", ({ request }) => {
-        const pathname = new URL(request.url).pathname;
-        if (pathname.startsWith("/api")) return;
-        const res = serveStatic(pathname);
-        if (res) return res;
-        const indexRes = serveStatic("/index.html");
-        return indexRes ?? new Response("Not Found", { status: 404 });
-      })
-  );
+export function createApp(frontendDistDir:string){
+ const serveStatic=createSpaStaticHandler(frontendDistDir);
+ const forwardAuth=(request:Request)=>getAuth().handler(request);
+ return new Elysia().use(requestLogPlugin()).onBeforeHandle(apiAuthGuard)
+ .use(domainRoutes).use(infrastructureServerRoutes).use(configApiRoutes).use(appSettingsRoutes).use(userRoutes).use(systemRoutes).use(openapiDocsPlugin())
+ .get("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
+ .post("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
+ .options("/api/auth/*",({request})=>forwardAuth(request),{parse:"none"})
+ .get("/*",({request})=>{const pathname=new URL(request.url).pathname;if(pathname.startsWith("/api"))return;const res=serveStatic(pathname);if(res)return res;const indexRes=serveStatic("/index.html");return indexRes??new Response("Not Found",{status:404})});
 }
