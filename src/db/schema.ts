@@ -17,6 +17,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
+  role: text("role").$type<"admin" | "operator" | "viewer">().notNull().default("viewer"),
   username: text("username").unique(),
   displayUsername: text("displayUsername"),
   createdAt: timestamp("createdAt", { mode: "date", precision: 3 })

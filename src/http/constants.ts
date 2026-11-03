@@ -1,9 +1,4 @@
-/** API paths that skip session checks (see `middleware/apiAuthGuard`). */
+/** Public API endpoints; keep the unauthenticated surface deliberately small. */
 export const PUBLIC_API_PATHS = [
-  "/api/auth",
-  "/api/docs",
-  "/api/health",
-  "/api/allow-signup",
-  "/api/auth-capabilities",
-  "/api/proxy/status",
+  "/api/auth", "/api/docs", "/api/health", "/api/allow-signup", "/api/auth-capabilities",
 ] as const;

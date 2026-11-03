@@ -93,3 +93,8 @@ Domain detail pages support an on-demand public check. The refresh endpoint runs
 - Run `bun run db:migrate` before starting an upgraded deployment.
 
 The first version checks the domain’s DNS records, TLS certificate and existing registration/host enrichment. It does not run a separate HTTP status probe yet; scheduled portfolio-wide checks and webhook notifications are tracked separately.
+
+
+## Role-based access control
+
+ProxyDeck supports **admin**, **operator**, and **viewer** roles enforced by the API. The first account in an existing installation is promoted to admin by the role migration; new accounts default to viewer. Administrators can inspect and change roles through the user-management API. See [RBAC documentation](docs/rbac.md) for the capability matrix, endpoints, migration behavior, and security model.
